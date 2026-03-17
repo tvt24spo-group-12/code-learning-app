@@ -31,8 +31,7 @@ yarn-error.*
 *.pem
 
 # local env files
-.env
-.local
+.env*.local
 
 # Firebase Admin SDK avain
 service-account.json
