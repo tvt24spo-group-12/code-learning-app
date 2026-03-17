@@ -1,12 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
-
+import Tabs from '../code-learning-app/src/components/naviGationBar'
+import { NavigationContainer } from '@react-navigation/native';
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+     <NavigationContainer>
+      
+      <Tabs/>
+    
+     
       <StatusBar style="auto" />
-    </View>
+      </NavigationContainer>
   );
 }
 

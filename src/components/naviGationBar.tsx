@@ -1,15 +1,19 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { View, Platform } from 'react-native';
+import { View, Platform,StyleSheet } from 'react-native';
 import { useLinkBuilder, useTheme } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import HomeScreen from '../screens/homeScreen';
 import CoursePage from '../screens/Courses';
+import AccountPage from '../screens/account';
+import SettingsPage from '../screens/settings';
+import {Menu, Home, CircleUser, Settings} from 'lucide-react-native'
+const Tab = createBottomTabNavigator();
 
 function TabBar({state, descriptors, navigation}: any){
   const { colors } = useTheme();
   const {buildHref  } = useLinkBuilder();
 return(
-    <View style={{flexDirection:'row'}}>
+    <View style={styles.tabBar}>
         {state.routes.map((route: any, index: number)=>{
             const {options} = descriptors[route.key];
             const label=
@@ -45,11 +49,13 @@ return(
             testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={{ flex: 1 }}
+            style={styles.tabButton}
           >
-            <Text style={{ color: focused ? colors.primary : colors.text }}>
-              {label}
-            </Text>
+            {(label === "CoursePage")&&<Menu/>}
+           {(label=== "Home") && <Home/>}
+            {(label === "AccountPage")&& <CircleUser/>}
+                {(label === "SettingsPage") && <Settings/>}
+             
           </PlatformPressable>
         );
         })}
@@ -58,11 +64,38 @@ return(
 )
 
 }
+export default function Tabs() {
+  return (
+  
+    <Tab.Navigator tabBar={(props) => <TabBar {...props} />} initialRouteName='Home'>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="CoursePage" component={CoursePage} />
+      <Tab.Screen name='AccountPage' component={AccountPage}/>
+      <Tab.Screen name='SettingsPage' component={SettingsPage}/>
 
-const Tabs = createBottomTabNavigator({
-    tabBar: (props) => <TabBar{...props}/>,
-    screens:{
-        Home: HomeScreen,
-        Courses: CoursePage
-    },
-})
+    </Tab.Navigator>
+   
+  );
+}
+
+
+
+const styles = StyleSheet.create({
+  tabBar: {
+    flexDirection: 'row',
+    position: 'absolute', // stick to bottom
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0, // safe area
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
