@@ -1,24 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { createGlobalStyles } from '../theme/globalStyles';
 
 
 
 export default function AccountPage() {
+  const { theme } = useTheme();
+  const globalStyles = createGlobalStyles(theme);
+
    return(
-        <View style={styles.container}>
-            <Text style={styles.text}>AccountPage!</Text>
-          
+        <View style={[globalStyles.screenContainer, { paddingTop: 20 }]}>
+            <Text style={globalStyles.heading}>AccountPage!</Text>
         </View>
     );
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },text : {
-    fontSize:20,
-    fontWeight: 'bold'
-  }
-});

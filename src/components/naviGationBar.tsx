@@ -1,19 +1,23 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Platform,StyleSheet } from 'react-native';
-import { useLinkBuilder, useTheme } from '@react-navigation/native';
+import { useLinkBuilder } from '@react-navigation/native';
 import { Text, PlatformPressable } from '@react-navigation/elements';
 import HomeScreen from '../screens/homeScreen';
 import CoursePage from '../screens/Courses';
 import AccountPage from '../screens/account';
 import SettingsPage from '../screens/settings';
 import {Menu, Home, CircleUser, Settings} from 'lucide-react-native'
+import { getTheme } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 const Tab = createBottomTabNavigator();
 
 function TabBar({state, descriptors, navigation}: any){
-  const { colors } = useTheme();
+  const { theme } = useTheme();
+  const colors = getTheme(theme);
   const {buildHref  } = useLinkBuilder();
+
 return(
-    <View style={styles.tabBar}>
+    <View style={[styles.tabBar, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
         {state.routes.map((route: any, index: number)=>{
             const {options} = descriptors[route.key];
             const label=
@@ -40,6 +44,9 @@ return(
                 target: route.key,
               });
             }
+
+            const iconColor = focused ? colors.primary : colors.textSecondary;
+
             return (
           <PlatformPressable
             key={route.key}
@@ -51,10 +58,10 @@ return(
             onLongPress={onLongPress}
             style={styles.tabButton}
           >
-            {(label === "CoursePage")&&<Menu/>}
-           {(label=== "Home") && <Home/>}
-            {(label === "AccountPage")&& <CircleUser/>}
-                {(label === "SettingsPage") && <Settings/>}
+            {(label === "CoursePage")&&<Menu color={iconColor}/>}
+           {(label=== "Home") && <Home color={iconColor}/>}
+            {(label === "AccountPage")&& <CircleUser color={iconColor}/>}
+                {(label === "Settings") && <Settings color={iconColor}/>}
              
           </PlatformPressable>
         );
@@ -66,12 +73,12 @@ return(
 }
 export default function Tabs() {
   return (
-  
+
     <Tab.Navigator tabBar={(props) => <TabBar {...props} />} initialRouteName='Home'>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="CoursePage" component={CoursePage} />
       <Tab.Screen name='AccountPage' component={AccountPage}/>
-      <Tab.Screen name='SettingsPage' component={SettingsPage}/>
+      <Tab.Screen name='Settings' component={SettingsPage}/>
 
     </Tab.Navigator>
    
