@@ -9,6 +9,7 @@ import SettingsPage from '../screens/settings';
 import {Menu, Home, CircleUser, Settings} from 'lucide-react-native'
 import { getTheme } from '../theme/theme';
 import { useTheme } from '../context/ThemeContext';
+import BillingPage from '../screens/Billing';
 const Tab = createBottomTabNavigator();
 
 function TabBar({state, descriptors, navigation}: any){
@@ -16,9 +17,13 @@ function TabBar({state, descriptors, navigation}: any){
   const colors = getTheme(theme);
   const {buildHref  } = useLinkBuilder();
 
+  const visibleRoutes = state.routes.filter(
+    (route: any) => route.name !== 'Billing'
+  );
+
 return(
     <View style={[styles.tabBar, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
-        {state.routes.map((route: any, index: number)=>{
+        {visibleRoutes.map((route: any)=>{
             const {options} = descriptors[route.key];
             const label=
             options.tabBarLabel !== undefined
@@ -27,7 +32,7 @@ return(
             ? options.title 
             :route.name;
 
-            const focused = state.index===index
+            const focused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
             const onPress=()=>{
                 const event = navigation.emit({
                     type: 'tabPress',
@@ -78,7 +83,9 @@ export default function Tabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="CoursePage" component={CoursePage} />
       <Tab.Screen name='AccountPage' component={AccountPage}/>
+
       <Tab.Screen name='Settings' component={SettingsPage}/>
+      <Tab.Screen name='Billing' component={BillingPage} options={{ tabBarButton: () => null }}  />
 
     </Tab.Navigator>
    
