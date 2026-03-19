@@ -1,28 +1,16 @@
-import { View, Text, StyleSheet } from 'react-native';
-import * as React from 'react'
+import * as React from 'react';
+import { Text, View } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { createGlobalStyles } from '../theme/globalStyles';
 
 
 export default function HomeScreen() {
+  const { theme } = useTheme();
+  const globalStyles = createGlobalStyles(theme);
   
     return(
-        <View style={styles.container}>
-            <View>
-            <Text style={styles.text}>HomeScreen!</Text>
-            </View>
-            
-      
+        <View style={[globalStyles.screenContainer, { paddingTop: 20 }]}>
+            <Text style={globalStyles.heading}>Home</Text>
         </View>
     )
-  }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },text : {
-    fontSize:20,
-    fontWeight: 'bold'
-  }
-});
+}

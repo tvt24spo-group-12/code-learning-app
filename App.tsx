@@ -1,24 +1,15 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import Tabs from '../code-learning-app/src/components/naviGationBar'
 import { NavigationContainer } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import Tabs from './src/components/naviGationBar';
+import { ThemeProvider } from './src/context/ThemeContext';
+
 export default function App() {
   return (
-     <NavigationContainer>
-      
-      <Tabs/>
-    
-     
-      <StatusBar style="auto" />
+    <ThemeProvider>
+      <NavigationContainer>
+        <Tabs />
+        <StatusBar style="auto" />
       </NavigationContainer>
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
