@@ -93,5 +93,23 @@ export const createGlobalStyles = (mode: ThemeMode) => {
             backgroundColor: colors.border,
             marginVertical: 12,
         },
+
+        // Password show hide icon
+        passwordShowIcon: {
+            position: "absolute",
+            right: 6,
+            top: 0,
+            bottom: 10,
+            justifyContent: "center",
+            alignItems: "center",
+            width: 40,
+        },
+
+        // Loading wheel (a throbber)
+        loading: {
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+        },
     });
 };

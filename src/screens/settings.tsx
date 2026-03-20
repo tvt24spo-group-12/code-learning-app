@@ -10,10 +10,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Switch } from 'react-native';
-import { Moon, Mail, User, Lock, CreditCard, Trash2 } from 'lucide-react-native';
+import { Moon, Mail, User, Lock, CreditCard, Trash2, LogOut } from 'lucide-react-native';
 import { createGlobalStyles } from '../theme/globalStyles';
 import { useTheme } from '../context/ThemeContext';
 import { getTheme } from '../theme/theme';
+import { useAuth } from '../context/AuthContext';
 
 type FormData = {
   email: string;
@@ -40,6 +41,7 @@ export default function SettingsPage({ navigation }: any) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { logout } = useAuth();
 
   // Placeholder functions for API calls
   const handleUpdateProfile = async () => {
@@ -244,10 +246,28 @@ export default function SettingsPage({ navigation }: any) {
             </View>
           </TouchableOpacity>
 
+
+          {/* Logout Section */}
+          <Text style={globalStyles.subheading}>Session</Text>
+
+          <View style={globalStyles.card}>
+            <TouchableOpacity
+              style={[globalStyles.button, globalStyles.buttonPrimary]}
+              onPress={logout}
+              disabled={isLoading}
+            >
+              <View style={styles.deleteButtonContent}>
+                <LogOut size={18} color="#fff" />
+                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Log Out</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Delete Account Section */}
           <Text style={globalStyles.subheading}>Danger Zone</Text>
 
           <View style={globalStyles.card}>
+
             <TouchableOpacity
               style={[globalStyles.button, globalStyles.buttonDanger]}
               onPress={() => setShowDeleteConfirm(true)}
