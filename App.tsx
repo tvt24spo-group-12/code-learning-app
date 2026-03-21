@@ -1,28 +1,26 @@
 import React, { useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import Tabs from "./src/components/naviGationBar";
-import { ThemeProvider } from "./src/context/ThemeContext";
 import { ActivityIndicator, View, StyleSheet } from "react-native";
 
+// Kontekstit
+import { ThemeProvider } from "./src/context/ThemeContext";
 import { AuthProvider, useAuth } from "./src/context/AuthContext";
+
+// Komponentit ja näkymät
+import Tabs from "./src/components/naviGationBar";
+import ExerciseScreen from "./src/screens/ExerciseScreen";
 import Login from "./src/screens/login";
 import Register from "./src/screens/register";
 import UsernameSetup from "./src/screens/usernameSetup";
 
+const Stack = createNativeStackNavigator();
 type AuthScreen = "Login" | "Register";
 
-function AuthScreenContainer({
-  screen,
-  onSwitch,
-}: {
-  screen: AuthScreen;
-  onSwitch: () => void;
-}) {
-  if (screen === "Login") {
-    return <Login onNavigate={onSwitch} />;
-  }
-  return <Register onNavigate={onSwitch} />;
+// Apufunktio kirjautumisnäkymille
+function AuthFlow({ screen, onSwitch }: { screen: AuthScreen; onSwitch: () => void }) {
+  return screen === "Login" ? <Login onNavigate={onSwitch} /> : <Register onNavigate={onSwitch} />;
 }
 
 function MainNavigator() {
@@ -32,7 +30,7 @@ function MainNavigator() {
   if (isLoading) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
@@ -42,21 +40,33 @@ function MainNavigator() {
   };
 
   return (
-    <>
+    <NavigationContainer>
       {!user ? (
-        // Not logged in - show auth screens
-        <AuthScreenContainer screen={authScreen} onSwitch={switchAuthScreen} />
+        /* 1. Ei kirjautunut: Näytetään kirjautuminen tai rekisteröinti */
+        <AuthFlow screen={authScreen} onSwitch={switchAuthScreen} />
       ) : userProfile && !userProfile.hasUsername ? (
-        // Logged in but no username - show username setup
+        /* 2. Kirjautunut, mutta nimimerkki puuttuu */
         <UsernameSetup />
       ) : (
-        // Fully logged in with username - show main app
-        <NavigationContainer>
-          <Tabs />
-          <StatusBar style="auto" />
-        </NavigationContainer>
+        /* 3. Kirjautunut sisään: Näytetään pääsovellus (Tabs + Stack) */
+        <Stack.Navigator>
+          <Stack.Screen 
+            name="MainTabs" 
+            component={Tabs} 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen 
+            name="ExerciseDetail" 
+            component={ExerciseScreen} 
+            options={({ route }: any) => ({ 
+              title: route.params?.title || 'Exercise Detail',
+              headerBackTitle: 'Back', 
+            })} 
+          />
+        </Stack.Navigator>
       )}
-    </>
+      <StatusBar style="auto" />
+    </NavigationContainer>
   );
 }
 
@@ -73,7 +83,7 @@ export default function App() {
 const styles = StyleSheet.create({
   loading: {
     flex: 1,
-    justifyContent: "center",
+    justify: "center",
     alignItems: "center",
   },
 });
