@@ -1,5 +1,5 @@
-import { doc, getDoc, runTransaction } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
 
 /**
  * Check if a username is already taken
@@ -7,10 +7,10 @@ import { db } from "../../firebaseConfig";
  * @returns true if username exists, false otherwise
  */
 export const checkUsernameExists = async (
-  username: string,
+  username: string
 ): Promise<boolean> => {
   const usernameDoc = await getDoc(
-    doc(db, "usernames", username.toLowerCase()),
+    doc(db, 'usernames', username.toLowerCase())
   );
   return usernameDoc.exists();
 };
@@ -25,29 +25,29 @@ export const checkUsernameExists = async (
 export const setUsername = async (
   uid: string,
   email: string | null,
-  username: string,
+  username: string
 ): Promise<void> => {
   const normalizedUsername = username.toLowerCase().trim();
 
   // Validate username format
   if (!/^[a-z0-9_]{3,20}$/.test(normalizedUsername)) {
     throw new Error(
-      "Username must be 3-20 characters, alphanumeric and underscores only",
+      'Username must be 3-20 characters, alphanumeric and underscores only'
     );
   }
 
   if (!email) {
-    throw new Error("User email is required");
+    throw new Error('User email is required');
   }
 
   try {
     await runTransaction(db, async (transaction) => {
       // Check if username is already taken
-      const usernameRef = doc(db, "usernames", normalizedUsername);
+      const usernameRef = doc(db, 'usernames', normalizedUsername);
       const usernameDoc = await transaction.get(usernameRef);
 
       if (usernameDoc.exists()) {
-        throw new Error("Username is already taken");
+        throw new Error('Username is already taken');
       }
 
       // Create username mapping
@@ -58,12 +58,12 @@ export const setUsername = async (
       });
 
       // Update user document
-      const userRef = doc(db, "users", uid);
+      const userRef = doc(db, 'users', uid);
       transaction.update(userRef, {
         username: normalizedUsername,
       });
     });
   } catch (error: any) {
-    throw new Error(error.message || "Failed to set username");
+    throw new Error(error.message || 'Failed to set username');
   }
 };

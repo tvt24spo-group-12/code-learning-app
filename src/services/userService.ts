@@ -1,5 +1,5 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../../firebaseConfig';
 
 export type UserProfile = {
   uid: string;
@@ -14,16 +14,16 @@ export type UserProfile = {
  * @returns User profile or null if not found
  */
 export const fetchUserProfile = async (
-  uid: string,
+  uid: string
 ): Promise<UserProfile | null> => {
   try {
-    const userDoc = await getDoc(doc(db, "users", uid));
+    const userDoc = await getDoc(doc(db, 'users', uid));
 
     if (userDoc.exists()) {
       const data = userDoc.data();
       return {
         uid,
-        email: data.email || "",
+        email: data.email || '',
         username: data.username || null,
         hasUsername: !!data.username,
       };
@@ -31,7 +31,7 @@ export const fetchUserProfile = async (
 
     return null;
   } catch (error) {
-    console.error("Error fetching user profile:", error);
+    console.error('Error fetching user profile:', error);
     return null;
   }
 };
@@ -42,11 +42,11 @@ export const fetchUserProfile = async (
  * @returns Email address or null if username not found
  */
 export const getEmailFromUsername = async (
-  username: string,
+  username: string
 ): Promise<string | null> => {
   try {
     const usernameDoc = await getDoc(
-      doc(db, "usernames", username.toLowerCase()),
+      doc(db, 'usernames', username.toLowerCase())
     );
 
     if (usernameDoc.exists()) {
@@ -55,7 +55,7 @@ export const getEmailFromUsername = async (
 
     return null;
   } catch (error) {
-    console.error("Error fetching username:", error);
+    console.error('Error fetching username:', error);
     return null;
   }
 };
@@ -67,9 +67,9 @@ export const getEmailFromUsername = async (
  */
 export const createUserDocument = async (
   uid: string,
-  email: string,
+  email: string
 ): Promise<void> => {
-  await setDoc(doc(db, "users", uid), {
+  await setDoc(doc(db, 'users', uid), {
     uid,
     email,
     username: null,

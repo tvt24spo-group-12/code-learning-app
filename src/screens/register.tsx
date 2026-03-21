@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,22 +9,22 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import { createGlobalStyles } from "../theme/globalStyles";
-import { getTheme } from "../theme/theme";
-import { Eye, EyeOff } from "lucide-react-native";
-import { formatAuthError, getErrorCode } from "../utils/errorUtils";
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { createGlobalStyles } from '../theme/globalStyles';
+import { getTheme } from '../theme/theme';
+import { Eye, EyeOff } from 'lucide-react-native';
+import { formatAuthError, getErrorCode } from '../utils/errorUtils';
 
 type RegisterProps = {
   onNavigate: () => void;
 };
 
 export default function Register({ onNavigate }: RegisterProps) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,17 +36,17 @@ export default function Register({ onNavigate }: RegisterProps) {
 
   const validateForm = (): boolean => {
     if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill in all fields");
+      Alert.alert('Error', 'Please fill in all fields');
       return false;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      Alert.alert('Error', 'Passwords do not match');
       return false;
     }
 
     if (password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters");
+      Alert.alert('Error', 'Password must be at least 6 characters');
       return false;
     }
 
@@ -64,8 +64,8 @@ export default function Register({ onNavigate }: RegisterProps) {
       await register(email, password);
     } catch (error: any) {
       const errorCode = getErrorCode(error);
-      const userFriendlyMessage = formatAuthError(errorCode, "register");
-      Alert.alert("Registration Failed", userFriendlyMessage);
+      const userFriendlyMessage = formatAuthError(errorCode, 'register');
+      Alert.alert('Registration Failed', userFriendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -73,14 +73,14 @@ export default function Register({ onNavigate }: RegisterProps) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView
           contentContainerStyle={[
             styles.container,
-            { justifyContent: "center" },
+            { justifyContent: 'center' },
           ]}
           keyboardShouldPersistTaps="handled"
         >
@@ -105,7 +105,7 @@ export default function Register({ onNavigate }: RegisterProps) {
 
           {/* Password Input */}
           <Text style={styles.label}>Password</Text>
-          <View style={{ position: "relative" }}>
+          <View style={{ position: 'relative' }}>
             <TextInput
               style={[styles.input, { paddingRight: 48 }]}
               placeholder="Enter your password"
@@ -128,7 +128,7 @@ export default function Register({ onNavigate }: RegisterProps) {
 
           {/* Confirm Password Input */}
           <Text style={styles.label}>Confirm Password</Text>
-          <View style={{ position: "relative" }}>
+          <View style={{ position: 'relative' }}>
             <TextInput
               style={[styles.input, { paddingRight: 48 }]}
               placeholder="Confirm your password"
@@ -166,11 +166,11 @@ export default function Register({ onNavigate }: RegisterProps) {
 
           {/* Login Link */}
           <TouchableOpacity
-            style={{ marginTop: 24, alignItems: "center" }}
+            style={{ marginTop: 24, alignItems: 'center' }}
             onPress={() => onNavigate()}
           >
             <Text style={styles.bodyText}>
-              Already have an account?{" "}
+              Already have an account?{' '}
               <Text style={{ color: colors.primary }}>Login</Text>
             </Text>
           </TouchableOpacity>

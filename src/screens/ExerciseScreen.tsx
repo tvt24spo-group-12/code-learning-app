@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  SafeAreaView,
+  Alert,
+} from 'react-native';
 import { getExerciseById } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { Check, X } from 'lucide-react-native';
@@ -31,7 +40,7 @@ const ExerciseScreen = ({ route }: any) => {
     setSelectedOption(option);
     const correct = option === exercise?.correctAnswer;
     setIsCorrect(correct);
-    
+
     if (correct) {
       Alert.alert('Good!', 'Excellent work!', [{ text: 'Excellent' }]);
     } else {
@@ -39,17 +48,19 @@ const ExerciseScreen = ({ route }: any) => {
     }
   };
 
-  if (loading) return (
-    <View style={styles.centered}>
-      <ActivityIndicator size="large" color='#666' />
-    </View>
-  );
+  if (loading)
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#666" />
+      </View>
+    );
 
-  if (!exercise) return (
-    <View style={styles.centered}>
-      <Text>Exercise not found.</Text>
-    </View>
-  );
+  if (!exercise)
+    return (
+      <View style={styles.centered}>
+        <Text>Exercise not found.</Text>
+      </View>
+    );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -66,17 +77,30 @@ const ExerciseScreen = ({ route }: any) => {
               key={index}
               style={[
                 styles.optionButton,
-                selectedOption === option && isCorrect === true && styles.correctOption,
-                selectedOption === option && isCorrect === false && styles.wrongOption,
+                selectedOption === option &&
+                  isCorrect === true &&
+                  styles.correctOption,
+                selectedOption === option &&
+                  isCorrect === false &&
+                  styles.wrongOption,
               ]}
               onPress={() => !selectedOption && checkAnswer(option)}
               disabled={selectedOption !== null}
             >
-              <Text style={[styles.optionText, selectedOption === option && styles.selectedOptionText]}>
+              <Text
+                style={[
+                  styles.optionText,
+                  selectedOption === option && styles.selectedOptionText,
+                ]}
+              >
                 {option}
               </Text>
-              {selectedOption === option && isCorrect === true && <Check size={18} color="#FFF" />}
-              {selectedOption === option && isCorrect === false && <X size={18} color="#FFF" />}
+              {selectedOption === option && isCorrect === true && (
+                <Check size={18} color="#FFF" />
+              )}
+              {selectedOption === option && isCorrect === false && (
+                <X size={18} color="#FFF" />
+              )}
             </TouchableOpacity>
           ))}
         </View>
@@ -89,20 +113,26 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll: { padding: 20 },
-  card: { backgroundColor: '#fff', padding: 20, borderRadius: 15, marginBottom: 20, elevation: 2 },
+  card: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+    elevation: 2,
+  },
   languageText: { color: '#666', marginBottom: 5 },
   questionText: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
   descriptionText: { fontSize: 16, color: '#444' },
   optionsContainer: { gap: 10 },
-  optionButton: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    backgroundColor: '#fff', 
-    padding: 15, 
+  optionButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 15,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ddd'
+    borderColor: '#ddd',
   },
   optionText: { fontSize: 16 },
   selectedOptionText: { color: '#fff', fontWeight: 'bold' },
@@ -111,3 +141,4 @@ const styles = StyleSheet.create({
 });
 
 export default ExerciseScreen;
+

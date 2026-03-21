@@ -10,10 +10,12 @@ export const getExercises = async (): Promise<Exercise[]> => {
   });
 };
 
-export const getExerciseById = async (id: string): Promise<Exercise | undefined> => {
+export const getExerciseById = async (
+  id: string
+): Promise<Exercise | undefined> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(MOCK_EXERCISES.find(e => e.id === id));
+      resolve(MOCK_EXERCISES.find((e) => e.id === id));
     }, 400);
   });
 };

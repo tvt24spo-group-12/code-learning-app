@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  FlatList,
+  ActivityIndicator,
+} from 'react-native';
 import { getExercises } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
@@ -25,10 +33,15 @@ const CoursePage = ({ navigation }: any) => {
   };
 
   const renderItem = ({ item }: { item: Exercise }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.card}
       // Varmista, että 'ExerciseDetail' on määritelty StackNavigatorissa!
-      onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title })}
+      onPress={() =>
+        navigation.navigate('ExerciseDetail', {
+          exerciseId: item.id,
+          title: item.title,
+        })
+      }
     >
       <View style={styles.cardInfo}>
         <Text style={styles.cardTitle}>{item.title}</Text>
@@ -51,9 +64,11 @@ const CoursePage = ({ navigation }: any) => {
       <FlatList
         data={exercises}
         renderItem={renderItem}
-        keyExtractor={item => item.id} 
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={styles.headerTitle}>C++ Harjoitukset</Text>}
+        ListHeaderComponent={
+          <Text style={styles.headerTitle}>C++ Harjoitukset</Text>
+        }
       />
     </SafeAreaView>
   );
@@ -64,46 +79,47 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    
-  },text : {
-    fontSize:20,
-    fontWeight: 'bold'
   },
-   list: { 
-    padding: 20
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  list: {
+    padding: 20,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  card: { 
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#f9f9f9',
-  elevation: 2,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.1, shadowRadius: 3 
-},
-  cardInfo: { 
-  flex: 1 
-},
-  cardTitle: { 
-  fontSize: 16,
-  fontWeight: 'bold',
-  color: '#000',
-},
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+  },
   cardSubtitle: {
-  fontSize: 12, 
-  color: '#666',
-  marginTop: 2 
-},
- headerTitle: { 
-  fontSize: 22, 
-  fontWeight: 'bold', 
-  color: '#000', 
-  marginBottom: 20
-},
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 20,
+  },
 });
 export default CoursePage;

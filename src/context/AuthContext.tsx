@@ -1,23 +1,23 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { User } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User } from 'firebase/auth';
+import { auth } from '../../firebaseConfig';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-} from "firebase/auth";
+} from 'firebase/auth';
 
 import {
   fetchUserProfile,
   getEmailFromUsername,
   createUserDocument,
   UserProfile,
-} from "../services/userService";
+} from '../services/userService';
 import {
   checkUsernameExists,
   setUsername as setUsernameService,
-} from "../services/usernameService";
+} from '../services/usernameService';
 
 type AuthContextType = {
   user: User | null;
@@ -59,10 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     let email = identifier;
 
     // If identifier doesn't contain @, treat it as username
-    if (!identifier.includes("@")) {
+    if (!identifier.includes('@')) {
       const emailFromUsername = await getEmailFromUsername(identifier);
       if (!emailFromUsername) {
-        throw new Error("Username not found");
+        throw new Error('Username not found');
       }
       email = emailFromUsername;
     }
@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
-      password,
+      password
     );
 
     // Create initial user document in Firestore
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const setUsername = async (username: string) => {
     if (!user) {
-      throw new Error("No user logged in");
+      throw new Error('No user logged in');
     }
 
     await setUsernameService(user.uid, user.email, username);
@@ -100,9 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // Update local profile
     const normalizedUsername = username.toLowerCase().trim();
     setUserProfile((prev) =>
-      prev
-        ? { ...prev, username: normalizedUsername, hasUsername: true }
-        : null,
+      prev ? { ...prev, username: normalizedUsername, hasUsername: true } : null
     );
   };
 
@@ -128,7 +126,7 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
 
   return context;

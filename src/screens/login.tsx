@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,21 +9,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import { createGlobalStyles } from "../theme/globalStyles";
-import { getTheme } from "../theme/theme";
-import { Eye, EyeOff } from "lucide-react-native";
-import { formatAuthError, getErrorCode } from "../utils/errorUtils";
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { createGlobalStyles } from '../theme/globalStyles';
+import { getTheme } from '../theme/theme';
+import { Eye, EyeOff } from 'lucide-react-native';
+import { formatAuthError, getErrorCode } from '../utils/errorUtils';
 
 type LoginProps = {
   onNavigate: () => void;
 };
 
 export default function Login({ onNavigate }: LoginProps) {
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +35,7 @@ export default function Login({ onNavigate }: LoginProps) {
   const handleLogin = async () => {
     // Validate input
     if (!identifier || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
@@ -45,8 +45,8 @@ export default function Login({ onNavigate }: LoginProps) {
       await login(identifier, password);
     } catch (error: any) {
       const errorCode = getErrorCode(error);
-      const userFriendlyMessage = formatAuthError(errorCode, "login");
-      Alert.alert("Login Failed", userFriendlyMessage);
+      const userFriendlyMessage = formatAuthError(errorCode, 'login');
+      Alert.alert('Login Failed', userFriendlyMessage);
     } finally {
       setLoading(false);
     }
@@ -54,14 +54,14 @@ export default function Login({ onNavigate }: LoginProps) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView
           contentContainerStyle={[
             styles.container,
-            { justifyContent: "center" },
+            { justifyContent: 'center' },
           ]}
           keyboardShouldPersistTaps="handled"
         >
@@ -87,7 +87,7 @@ export default function Login({ onNavigate }: LoginProps) {
 
           {/* Password Input */}
           <Text style={styles.label}>Password</Text>
-          <View style={{ position: "relative" }}>
+          <View style={{ position: 'relative' }}>
             <TextInput
               style={[styles.input, { paddingRight: 48 }]}
               placeholder="Enter your password"
@@ -125,11 +125,11 @@ export default function Login({ onNavigate }: LoginProps) {
 
           {/* Register Link */}
           <TouchableOpacity
-            style={{ marginTop: 24, alignItems: "center" }}
+            style={{ marginTop: 24, alignItems: 'center' }}
             onPress={() => onNavigate()}
           >
             <Text style={styles.bodyText}>
-              Don't have an account?{" "}
+              Don't have an account?{' '}
               <Text style={{ color: colors.primary }}>Register</Text>
             </Text>
           </TouchableOpacity>

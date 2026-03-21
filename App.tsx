@@ -1,31 +1,41 @@
-import React, { useState } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, View, StyleSheet } from "react-native";
+import React, { useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 // Kontekstit
-import { ThemeProvider } from "./src/context/ThemeContext";
-import { AuthProvider, useAuth } from "./src/context/AuthContext";
+import { ThemeProvider } from './src/context/ThemeContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 // Komponentit ja näkymät
-import Tabs from "./src/components/naviGationBar";
-import ExerciseScreen from "./src/screens/ExerciseScreen";
-import Login from "./src/screens/login";
-import Register from "./src/screens/register";
-import UsernameSetup from "./src/screens/usernameSetup";
+import Tabs from './src/components/naviGationBar';
+import ExerciseScreen from './src/screens/ExerciseScreen';
+import Login from './src/screens/login';
+import Register from './src/screens/register';
+import UsernameSetup from './src/screens/usernameSetup';
 
 const Stack = createNativeStackNavigator();
-type AuthScreen = "Login" | "Register";
+type AuthScreen = 'Login' | 'Register';
 
 // Apufunktio kirjautumisnäkymille
-function AuthFlow({ screen, onSwitch }: { screen: AuthScreen; onSwitch: () => void }) {
-  return screen === "Login" ? <Login onNavigate={onSwitch} /> : <Register onNavigate={onSwitch} />;
+function AuthFlow({
+  screen,
+  onSwitch,
+}: {
+  screen: AuthScreen;
+  onSwitch: () => void;
+}) {
+  return screen === 'Login' ? (
+    <Login onNavigate={onSwitch} />
+  ) : (
+    <Register onNavigate={onSwitch} />
+  );
 }
 
 function MainNavigator() {
   const { user, userProfile, isLoading } = useAuth();
-  const [authScreen, setAuthScreen] = useState<AuthScreen>("Login");
+  const [authScreen, setAuthScreen] = useState<AuthScreen>('Login');
 
   if (isLoading) {
     return (
@@ -36,7 +46,7 @@ function MainNavigator() {
   }
 
   const switchAuthScreen = () => {
-    setAuthScreen(authScreen === "Login" ? "Register" : "Login");
+    setAuthScreen(authScreen === 'Login' ? 'Register' : 'Login');
   };
 
   return (
@@ -50,18 +60,18 @@ function MainNavigator() {
       ) : (
         /* 3. Kirjautunut sisään: Näytetään pääsovellus (Tabs + Stack) */
         <Stack.Navigator>
-          <Stack.Screen 
-            name="MainTabs" 
-            component={Tabs} 
-            options={{ headerShown: false }} 
+          <Stack.Screen
+            name="MainTabs"
+            component={Tabs}
+            options={{ headerShown: false }}
           />
-          <Stack.Screen 
-            name="ExerciseDetail" 
-            component={ExerciseScreen} 
-            options={({ route }: any) => ({ 
+          <Stack.Screen
+            name="ExerciseDetail"
+            component={ExerciseScreen}
+            options={({ route }: any) => ({
               title: route.params?.title || 'Exercise Detail',
-              headerBackTitle: 'Back', 
-            })} 
+              headerBackTitle: 'Back',
+            })}
           />
         </Stack.Navigator>
       )}
@@ -83,7 +93,8 @@ export default function App() {
 const styles = StyleSheet.create({
   loading: {
     flex: 1,
-    justify: "center",
-    alignItems: "center",
+    justify: 'center',
+    alignItems: 'center',
   },
 });
+

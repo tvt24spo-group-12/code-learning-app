@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,14 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
-import { createGlobalStyles } from "../theme/globalStyles";
-import { getTheme } from "../theme/theme";
+} from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { createGlobalStyles } from '../theme/globalStyles';
+import { getTheme } from '../theme/theme';
 
 export default function UsernameSetup() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
@@ -42,7 +42,7 @@ export default function UsernameSetup() {
       const exists = await checkUsernameExists(username);
       setIsAvailable(!exists);
     } catch (error) {
-      console.error("Error checking username:", error);
+      console.error('Error checking username:', error);
       setIsAvailable(null);
     } finally {
       setChecking(false);
@@ -52,8 +52,8 @@ export default function UsernameSetup() {
   const handleSetUsername = async () => {
     if (!validateUsername(username)) {
       Alert.alert(
-        "Invalid Username",
-        "Username must be 3-20 characters, lowercase letters, numbers, and underscores only",
+        'Invalid Username',
+        'Username must be 3-20 characters, lowercase letters, numbers, and underscores only'
       );
       return;
     }
@@ -62,9 +62,9 @@ export default function UsernameSetup() {
 
     try {
       await saveUsername(username);
-      Alert.alert("Success", "Username set successfully!");
+      Alert.alert('Success', 'Username set successfully!');
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
     }
@@ -102,14 +102,14 @@ export default function UsernameSetup() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ScrollView
           contentContainerStyle={[
             styles.container,
-            { justifyContent: "center" },
+            { justifyContent: 'center' },
           ]}
           keyboardShouldPersistTaps="handled"
         >

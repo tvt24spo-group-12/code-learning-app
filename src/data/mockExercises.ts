@@ -13,9 +13,9 @@ export const MOCK_EXERCISES: Exercise[] = [
       'cout << "teksti";',
       'print("teksti");',
       'console.log("teksti");',
-      'System.out.print("teksti");'
+      'System.out.print("teksti");',
     ],
-    correctAnswer: 'cout << "teksti";'
+    correctAnswer: 'cout << "teksti";',
   },
   {
     id: '2',
@@ -25,12 +25,7 @@ export const MOCK_EXERCISES: Exercise[] = [
     difficulty: 'easy',
     type: 'multiple-choice',
     question: 'Miten määrittelet kokonaisluvun i ja annat sille arvon 10?',
-    options: [
-      'int i = 10;',
-      'Integer i = 10;',
-      'let i = 10;',
-      'var i = 10;'
-    ],
-    correctAnswer: 'int i = 10;'
-  }
+    options: ['int i = 10;', 'Integer i = 10;', 'let i = 10;', 'var i = 10;'],
+    correctAnswer: 'int i = 10;',
+  },
 ];

@@ -1,14 +1,14 @@
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { View, Platform, StyleSheet } from "react-native";
-import { useLinkBuilder } from "@react-navigation/native";
-import { Text, PlatformPressable } from "@react-navigation/elements";
-import HomeScreen from "../screens/homeScreen";
-import CoursePage from "../screens/Courses";
-import AccountPage from "../screens/account";
-import SettingsPage from "../screens/settings";
-import { Menu, Home, CircleUser, Settings } from "lucide-react-native";
-import { getTheme } from "../theme/theme";
-import { useTheme } from "../context/ThemeContext";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View, Platform, StyleSheet } from 'react-native';
+import { useLinkBuilder } from '@react-navigation/native';
+import { Text, PlatformPressable } from '@react-navigation/elements';
+import HomeScreen from '../screens/homeScreen';
+import CoursePage from '../screens/Courses';
+import AccountPage from '../screens/account';
+import SettingsPage from '../screens/settings';
+import { Menu, Home, CircleUser, Settings } from 'lucide-react-native';
+import { getTheme } from '../theme/theme';
+import { useTheme } from '../context/ThemeContext';
 // kommentoin nyt poissa, koska screniä ei ole gitissä ja rikkoo sovelluksen
 // import BillingPage from '../screens/Billing';
 const Tab = createBottomTabNavigator();
@@ -19,7 +19,7 @@ function TabBar({ state, descriptors, navigation }: any) {
   const { buildHref } = useLinkBuilder();
 
   const visibleRoutes = state.routes.filter(
-    (route: any) => route.name !== "Billing",
+    (route: any) => route.name !== 'Billing'
   );
 
   return (
@@ -43,7 +43,7 @@ function TabBar({ state, descriptors, navigation }: any) {
           state.routes.findIndex((r: any) => r.key === route.key);
         const onPress = () => {
           const event = navigation.emit({
-            type: "tabPress",
+            type: 'tabPress',
             target: route.key,
             canPreventDefault: true,
           });
@@ -53,7 +53,7 @@ function TabBar({ state, descriptors, navigation }: any) {
         };
         const onLongPress = () => {
           navigation.emit({
-            type: "tabLongPress",
+            type: 'tabLongPress',
             target: route.key,
           });
         };
@@ -71,10 +71,10 @@ function TabBar({ state, descriptors, navigation }: any) {
             onLongPress={onLongPress}
             style={styles.tabButton}
           >
-            {label === "CoursePage" && <Menu color={iconColor} />}
-            {label === "Home" && <Home color={iconColor} />}
-            {label === "AccountPage" && <CircleUser color={iconColor} />}
-            {label === "Settings" && <Settings color={iconColor} />}
+            {label === 'CoursePage' && <Menu color={iconColor} />}
+            {label === 'Home' && <Home color={iconColor} />}
+            {label === 'AccountPage' && <CircleUser color={iconColor} />}
+            {label === 'Settings' && <Settings color={iconColor} />}
           </PlatformPressable>
         );
       })}
@@ -102,21 +102,20 @@ export default function Tabs() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    flexDirection: "row",
-    position: "absolute", // stick to bottom
+    flexDirection: 'row',
+    position: 'absolute', // stick to bottom
     bottom: 0,
     left: 0,
     right: 0,
     height: 60,
     borderTopWidth: 1,
-    borderTopColor: "#ccc",
-    backgroundColor: "#fff",
-    paddingBottom: Platform.OS === "ios" ? 20 : 0, // safe area
+    borderTopColor: '#ccc',
+    backgroundColor: '#fff',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0, // safe area
   },
   tabButton: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
-

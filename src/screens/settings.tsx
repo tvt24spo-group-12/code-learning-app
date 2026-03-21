@@ -10,7 +10,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Switch } from 'react-native';
-import { Moon, Mail, User, Lock, CreditCard, Trash2, LogOut } from 'lucide-react-native';
+import {
+  Moon,
+  Mail,
+  User,
+  Lock,
+  CreditCard,
+  Trash2,
+  LogOut,
+} from 'lucide-react-native';
 import { createGlobalStyles } from '../theme/globalStyles';
 import { useTheme } from '../context/ThemeContext';
 import { getTheme } from '../theme/theme';
@@ -23,7 +31,6 @@ type FormData = {
   newPassword: string;
   confirmPassword: string;
 };
-
 
 export default function SettingsPage({ navigation }: any) {
   const { theme, toggleTheme } = useTheme();
@@ -98,240 +105,310 @@ export default function SettingsPage({ navigation }: any) {
   const handleNavigateToBilling = () => {
     navigation.navigate('Billing');
   };
-  
-    return(
-      <ScrollView style={[globalStyles.screenContainer]} showsVerticalScrollIndicator={false}>
-        <View style={globalStyles.container}>
-          {/* Header */}
-          {/* <Text style={globalStyles.heading}>Settings</Text> */}
 
-          {/* Theme Toggle */}
-          <View style={[globalStyles.card, styles.themeCard]}>
-            <View style={styles.themeRow}>
-              <View style={styles.themeLabel}>
-                <Moon size={20} color={colors.primary} />
-                <Text style={[globalStyles.subheading, { marginBottom: 0, marginLeft: 8 }]}>
-                  Dark Mode
-                </Text>
-              </View>
-              <Switch
-                value={theme === 'dark'}
-                onValueChange={toggleTheme}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor={colors.background}
+  return (
+    <ScrollView
+      style={[globalStyles.screenContainer]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={globalStyles.container}>
+        {/* Header */}
+        {/* <Text style={globalStyles.heading}>Settings</Text> */}
+
+        {/* Theme Toggle */}
+        <View style={[globalStyles.card, styles.themeCard]}>
+          <View style={styles.themeRow}>
+            <View style={styles.themeLabel}>
+              <Moon size={20} color={colors.primary} />
+              <Text
+                style={[
+                  globalStyles.subheading,
+                  { marginBottom: 0, marginLeft: 8 },
+                ]}
+              >
+                Dark Mode
+              </Text>
+            </View>
+            <Switch
+              value={theme === 'dark'}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.background}
+            />
+          </View>
+        </View>
+
+        {/* Account Section */}
+        <Text style={globalStyles.subheading}>Account Information</Text>
+        <View style={globalStyles.card}>
+          <View style={styles.inputGroup}>
+            <View style={styles.inputWithIcon}>
+              <Mail
+                size={16}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="Email"
+                placeholderTextColor={colors.textSecondary}
+                value={formData.email}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, email: text }))
+                }
+                editable={!isLoading}
+                keyboardType="email-address"
+              />
+            </View>
+
+            <View style={globalStyles.divider} />
+
+            <View style={styles.inputWithIcon}>
+              <User
+                size={16}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="Username"
+                placeholderTextColor={colors.textSecondary}
+                value={formData.username}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, username: text }))
+                }
+                editable={!isLoading}
               />
             </View>
           </View>
 
-          {/* Account Section */}
-          <Text style={globalStyles.subheading}>Account Information</Text>
-            <View style={globalStyles.card}>
-              <View style={styles.inputGroup}>
-                <View style={styles.inputWithIcon}>
-                  <Mail size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                  <TextInput 
-                    style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Email"
-                    placeholderTextColor={colors.textSecondary}
-                    value={formData.email}
-                    onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
-                    editable={!isLoading}
-                    keyboardType="email-address"
-                  />
-                </View>
+          <TouchableOpacity
+            style={[
+              globalStyles.button,
+              globalStyles.buttonPrimary,
+              { marginTop: 12 },
+            ]}
+            onPress={handleUpdateProfile}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={{ color: '#fff', fontWeight: '600' }}>
+                Update Profile
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
-                <View style={globalStyles.divider} />
+        {/* Password Section */}
+        <Text style={globalStyles.subheading}>Security</Text>
 
-                <View style={styles.inputWithIcon}>
-                  <User size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                  <TextInput 
-                    style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Username"
-                    placeholderTextColor={colors.textSecondary}
-                    value={formData.username}
-                    onChangeText={(text) => setFormData(prev => ({ ...prev, username: text }))}
-                    editable={!isLoading}
-                  />
-                </View>
-              </View>
-
-              <TouchableOpacity
-                style={[globalStyles.button, globalStyles.buttonPrimary, { marginTop: 12 }]}
-                onPress={handleUpdateProfile}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>Update Profile</Text>
-                )}
-              </TouchableOpacity>
+        <View style={globalStyles.card}>
+          <View style={styles.inputGroup}>
+            <View style={styles.inputWithIcon}>
+              <Lock
+                size={16}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="Current Password"
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={formData.currentPassword}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, currentPassword: text }))
+                }
+                editable={!isLoading}
+              />
             </View>
 
-          {/* Password Section */}
-          <Text style={globalStyles.subheading}>Security</Text>
+            <View style={globalStyles.divider} />
 
-          <View style={globalStyles.card}>
-            <View style={styles.inputGroup}>
-              <View style={styles.inputWithIcon}>
-                <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                <TextInput
-                  style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="Current Password"
-                  placeholderTextColor={colors.textSecondary}
-                  secureTextEntry
-                  value={formData.currentPassword}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, currentPassword: text }))}
-                  editable={!isLoading}
-                />
-              </View>
-
-              <View style={globalStyles.divider} />
-
-              <View style={styles.inputWithIcon}>
-                <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                <TextInput
-                  style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="New Password"
-                  placeholderTextColor={colors.textSecondary}
-                  secureTextEntry
-                  value={formData.newPassword}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, newPassword: text }))}
-                  editable={!isLoading}
-                />
-              </View>
-
-              <View style={globalStyles.divider} />
-
-              <View style={styles.inputWithIcon}>
-                <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                <TextInput
-                  style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="Confirm Password"
-                  placeholderTextColor={colors.textSecondary}
-                  secureTextEntry
-                  value={formData.confirmPassword}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, confirmPassword: text }))}
-                  editable={!isLoading}
-                />
-              </View>
+            <View style={styles.inputWithIcon}>
+              <Lock
+                size={16}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="New Password"
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={formData.newPassword}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, newPassword: text }))
+                }
+                editable={!isLoading}
+              />
             </View>
 
-            <TouchableOpacity
-              style={[globalStyles.button, globalStyles.buttonPrimary, { marginTop: 12 }]}
-              onPress={handleChangePassword}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={globalStyles.buttonText}>Change Password</Text>
-              )}
-            </TouchableOpacity>
+            <View style={globalStyles.divider} />
+
+            <View style={styles.inputWithIcon}>
+              <Lock
+                size={16}
+                color={colors.textSecondary}
+                style={styles.inputIcon}
+              />
+              <TextInput
+                style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                placeholder="Confirm Password"
+                placeholderTextColor={colors.textSecondary}
+                secureTextEntry
+                value={formData.confirmPassword}
+                onChangeText={(text) =>
+                  setFormData((prev) => ({ ...prev, confirmPassword: text }))
+                }
+                editable={!isLoading}
+              />
+            </View>
           </View>
 
-          {/* Billing Section */}
-          <Text style={globalStyles.subheading}>Billing</Text>
-
           <TouchableOpacity
-            style={[globalStyles.card, globalStyles.button, { marginBottom: 16 }]}
-            onPress={handleNavigateToBilling}
+            style={[
+              globalStyles.button,
+              globalStyles.buttonPrimary,
+              { marginTop: 12 },
+            ]}
+            onPress={handleChangePassword}
+            disabled={isLoading}
           >
-            <View style={styles.billingRow}>
-              <CreditCard size={20} color={colors.primary} />
-              <Text style={[globalStyles.bodyText, { flex: 1, marginLeft: 12 }]}>
-                Billing Information
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={globalStyles.buttonText}>Change Password</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Billing Section */}
+        <Text style={globalStyles.subheading}>Billing</Text>
+
+        <TouchableOpacity
+          style={[globalStyles.card, globalStyles.button, { marginBottom: 16 }]}
+          onPress={handleNavigateToBilling}
+        >
+          <View style={styles.billingRow}>
+            <CreditCard size={20} color={colors.primary} />
+            <Text style={[globalStyles.bodyText, { flex: 1, marginLeft: 12 }]}>
+              Billing Information
+            </Text>
+            <Text style={{ color: colors.textSecondary }}>→</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Logout Section */}
+        <Text style={globalStyles.subheading}>Session</Text>
+
+        <View style={globalStyles.card}>
+          <TouchableOpacity
+            style={[globalStyles.button, globalStyles.buttonPrimary]}
+            onPress={logout}
+            disabled={isLoading}
+          >
+            <View style={styles.deleteButtonContent}>
+              <LogOut size={18} color="#fff" />
+              <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>
+                Log Out
               </Text>
-              <Text style={{ color: colors.textSecondary }}>→</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Delete Account Section */}
+        <Text style={globalStyles.subheading}>Danger Zone</Text>
+
+        <View style={globalStyles.card}>
+          <TouchableOpacity
+            style={[globalStyles.button, globalStyles.buttonDanger]}
+            onPress={() => setShowDeleteConfirm(true)}
+            disabled={isLoading}
+          >
+            <View style={styles.deleteButtonContent}>
+              <Trash2 size={18} color="#fff" />
+              <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>
+                Delete Account
+              </Text>
             </View>
           </TouchableOpacity>
 
-
-          {/* Logout Section */}
-          <Text style={globalStyles.subheading}>Session</Text>
-
-          <View style={globalStyles.card}>
-            <TouchableOpacity
-              style={[globalStyles.button, globalStyles.buttonPrimary]}
-              onPress={logout}
-              disabled={isLoading}
-            >
-              <View style={styles.deleteButtonContent}>
-                <LogOut size={18} color="#fff" />
-                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Log Out</Text>
+          {showDeleteConfirm && (
+            <>
+              <View style={globalStyles.divider} />
+              <Text
+                style={[
+                  globalStyles.bodyText,
+                  { color: colors.danger, marginVertical: 12 },
+                ]}
+              >
+                Warning: This action cannot be undone.
+              </Text>
+              <View style={styles.inputWithIcon}>
+                <Lock
+                  size={16}
+                  color={colors.textSecondary}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                  placeholder="Enter password to confirm"
+                  placeholderTextColor={colors.textSecondary}
+                  secureTextEntry
+                  value={deletePassword}
+                  onChangeText={setDeletePassword}
+                  editable={!isLoading}
+                />
               </View>
-            </TouchableOpacity>
-          </View>
 
-          {/* Delete Account Section */}
-          <Text style={globalStyles.subheading}>Danger Zone</Text>
+              <View style={styles.buttonGroup}>
+                <TouchableOpacity
+                  style={[
+                    globalStyles.button,
+                    { flex: 1, backgroundColor: colors.border },
+                  ]}
+                  onPress={() => {
+                    setShowDeleteConfirm(false);
+                    setDeletePassword('');
+                  }}
+                  disabled={isLoading}
+                >
+                  <Text
+                    style={[globalStyles.buttonText, { color: colors.text }]}
+                  >
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
 
-          <View style={globalStyles.card}>
-
-            <TouchableOpacity
-              style={[globalStyles.button, globalStyles.buttonDanger]}
-              onPress={() => setShowDeleteConfirm(true)}
-              disabled={isLoading}
-            >
-              <View style={styles.deleteButtonContent}>
-                <Trash2 size={18} color="#fff" />
-                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Delete Account</Text>
+                <TouchableOpacity
+                  style={[
+                    globalStyles.button,
+                    globalStyles.buttonDanger,
+                    { flex: 1, marginLeft: 8 },
+                  ]}
+                  onPress={handleDeleteAccount}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={globalStyles.buttonText}>Confirm Delete</Text>
+                  )}
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-
-            {showDeleteConfirm && (
-              <>
-                <View style={globalStyles.divider} />
-                <Text style={[globalStyles.bodyText, { color: colors.danger, marginVertical: 12 }]}>
-                  Warning: This action cannot be undone.
-                </Text>
-                <View style={styles.inputWithIcon}>
-                  <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                  <TextInput
-                    style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Enter password to confirm"
-                    placeholderTextColor={colors.textSecondary}
-                    secureTextEntry
-                    value={deletePassword}
-                    onChangeText={setDeletePassword}
-                    editable={!isLoading}
-                  />
-                </View>
-
-                <View style={styles.buttonGroup}>
-                  <TouchableOpacity
-                    style={[globalStyles.button, { flex: 1, backgroundColor: colors.border }]}
-                    onPress={() => {
-                      setShowDeleteConfirm(false);
-                      setDeletePassword('');
-                    }}
-                    disabled={isLoading}
-                  >
-                    <Text style={[globalStyles.buttonText, { color: colors.text }]}>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[globalStyles.button, globalStyles.buttonDanger, { flex: 1, marginLeft: 8 }]}
-                    onPress={handleDeleteAccount}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <Text style={globalStyles.buttonText}>Confirm Delete</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
-
-          {/* Footer spacing */}
-          <View style={{ height: 40 }} />
+            </>
+          )}
         </View>
-      </ScrollView>
-    )
-  }
+
+        {/* Footer spacing */}
+        <View style={{ height: 40 }} />
+      </View>
+    </ScrollView>
+  );
+}
 
 const styles = StyleSheet.create({
   themeCard: {
