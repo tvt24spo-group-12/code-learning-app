@@ -1,22 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getExercises } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
-
+import { getCourses } from '../services/exerciseService';
 const CoursePage = ({ navigation }: any) => {
   const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
+            
     fetchExercises();
   }, []);
 
   const fetchExercises = async () => {
     try {
       setLoading(true);
-      const data = await getExercises();
-      setExercises(data || []);
+     const data = await getCourses()
+      setExercises(data)
+    
+        
+      
     } catch (error) {
       console.error('Error fetching:', error);
     } finally {

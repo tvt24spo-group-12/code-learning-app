@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert } from 'react-native';
-import { getExerciseById } from '../services/exerciseService';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+//import { getExerciseById } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { Check, X } from 'lucide-react-native';
+import { getCourses } from '../services/exerciseService';
 
 const ExerciseScreen = ({ route }: any) => {
-  const { exerciseId } = route.params;
+  const { exerciseId,title } = route.params;
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -15,8 +17,9 @@ const ExerciseScreen = ({ route }: any) => {
     const fetchExercise = async () => {
       try {
         setLoading(true);
-        const data = await getExerciseById(exerciseId);
-        setExercise(data || null);
+       const data = await getCourses();
+      const assingment = data.find((e)=>e.id===exerciseId)
+      setExercise(assingment??null)
       } catch (error) {
         console.error('Error fetching exercise:', error);
       } finally {
