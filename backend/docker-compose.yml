@@ -1,0 +1,56 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - python_runner
+      - node_runner
+      - cpp_runner
+    networks:
+      - executor-net
+
+  
+  python_runner:
+    image: python:3.11
+    container_name: python_runner
+    command: sleep infinity
+    networks:
+      - executor-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+  node_runner:
+    image: node:20
+    container_name: node_runner
+    command: sleep infinity
+    networks:
+      - executor-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+  cpp_runner:
+    image: gcc:latest
+    container_name: cpp_runner
+    command: sleep infinity
+    networks:
+      - executor-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+networks:
+  executor-net:
+    driver: bridge
+      
