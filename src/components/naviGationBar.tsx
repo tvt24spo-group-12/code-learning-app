@@ -9,8 +9,8 @@ import SettingsPage from "../screens/settings";
 import { Menu, Home, CircleUser, Settings } from "lucide-react-native";
 import { getTheme } from "../theme/theme";
 import { useTheme } from "../context/ThemeContext";
-// kommentoin nyt poissa, koska screniä ei ole gitissä ja rikkoo sovelluksen
-// import BillingPage from '../screens/Billing';
+import BillingPage from '../screens/Billing';
+
 const Tab = createBottomTabNavigator();
 
 function TabBar({ state, descriptors, navigation }: any) {
@@ -91,11 +91,11 @@ export default function Tabs() {
       <Tab.Screen name="CoursePage" component={CoursePage} />
       <Tab.Screen name="AccountPage" component={AccountPage} />
       <Tab.Screen name="Settings" component={SettingsPage} />
-      {/*<Tab.Screen
+      <Tab.Screen
         name="Billing"
         component={BillingPage}
         options={{ tabBarButton: () => null }}
-      />*/}
+      />
     </Tab.Navigator>
   );
 }
