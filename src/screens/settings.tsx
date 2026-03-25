@@ -29,6 +29,7 @@ export default function SettingsPage({ navigation }: any) {
   const { theme, toggleTheme } = useTheme();
   const colors = getTheme(theme);
   const globalStyles = createGlobalStyles(theme);
+  const { logout, deleteAccount, userProfile, isLoading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState<FormData>({
     email: '',
@@ -41,17 +42,27 @@ export default function SettingsPage({ navigation }: any) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { logout } = useAuth();
 
-  // Placeholder functions for API calls
+  // Load user data from firestore when component mounts
+  React.useEffect(() => {
+    if (userProfile) {
+      setFormData(prev => ({
+        ...prev,
+        email: userProfile.email || '',
+        username: userProfile.username || '',
+      }));
+    }
+  }, [userProfile]);
+
+  // Placeholder functions for calls
   const handleUpdateProfile = async () => {
     try {
       setIsLoading(true);
-      //TODO: Implement API call to update profile
+      //TODO: Implement call to update profile
       // await updateUserProfile(formData);
-      Alert.alert('Success', 'Profile updated successfully!');
+      Alert.alert('Onnistui', 'Profiili päivitetty onnistuneesti!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      Alert.alert('Virhe', 'Profiilin päivittäminen epäonnistui. Yritä uudestaan.');
     } finally {
       setIsLoading(false);
     }
@@ -59,17 +70,17 @@ export default function SettingsPage({ navigation }: any) {
 
   const handleChangePassword = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
-      Alert.alert('Error', 'New password and confirm password do not match.');
+      Alert.alert('Virhe', 'Uudet salasanat eivät täsmää');
       return;
     }
 
     try {
       setIsLoading(true);
-      //TODO: Implement API call to change password
+      //TODO: Implement call to change password
       // await changeUserPassword(formData.currentPassword, formData.newPassword);
-      Alert.alert('Success', 'Password changed successfully!');
+      Alert.alert('Onnistui', 'Salasana vaihdettu onnistuneesti!');
     } catch (error) {
-      Alert.alert('Error', 'Failed to change password. Please try again.');
+      Alert.alert('Virhe', 'Salasanan vaihtaminen epäonnistui. Varmista, että nykyinen salasana on oikein ja yritä uudestaan.');
     } finally {
       setIsLoading(false);
     }
@@ -77,17 +88,21 @@ export default function SettingsPage({ navigation }: any) {
 
   const handleDeleteAccount = async () => {
     if (!deletePassword) {
-      Alert.alert('Error', 'Please enter your password');
+      Alert.alert('Virhe', 'Vahvista tilin poisto syöttämällä salasana');
       return;
     }
 
     try {
       setIsLoading(true);
-      // TODO: Integrate with Firebase Auth
-      // await deleteUserAccount(deletePassword);
-      Alert.alert('Success', 'Account deleted');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to delete account');
+
+      await deleteAccount(deletePassword);
+
+      Alert.alert('Käyttäjä poistettu', 'Tilisi on poistettu onnistuneesti.',
+        [{ text: 'OK' }]
+      );
+    } catch (error: any) {
+      const errorMessage = error.message || 'Tilin poisto epäonnistui. Varmista, että salasana on oikein ja yritä uudestaan.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
       setShowDeleteConfirm(false);
@@ -98,6 +113,15 @@ export default function SettingsPage({ navigation }: any) {
   const handleNavigateToBilling = () => {
     navigation.navigate('Billing');
   };
+
+  // Show loading indicator while auth state is being determined
+  if (authLoading) {
+    return (
+      <View style={[globalStyles.screenContainer, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    )
+  }
   
     return(
       <ScrollView style={[globalStyles.screenContainer]} showsVerticalScrollIndicator={false}>
@@ -124,7 +148,7 @@ export default function SettingsPage({ navigation }: any) {
           </View>
 
           {/* Account Section */}
-          <Text style={globalStyles.subheading}>Account Information</Text>
+          <Text style={globalStyles.subheading}>Käyttäjä Tiedot</Text>
             <View style={globalStyles.card}>
               <View style={styles.inputGroup}>
                 <View style={styles.inputWithIcon}>
@@ -163,13 +187,13 @@ export default function SettingsPage({ navigation }: any) {
                 {isLoading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>Update Profile</Text>
+                  <Text style={{ color: '#fff', fontWeight: '600' }}>Päivitä Profiili</Text>
                 )}
               </TouchableOpacity>
             </View>
 
           {/* Password Section */}
-          <Text style={globalStyles.subheading}>Security</Text>
+          <Text style={globalStyles.subheading}>Turvallisuus</Text>
 
           <View style={globalStyles.card}>
             <View style={styles.inputGroup}>
@@ -177,7 +201,7 @@ export default function SettingsPage({ navigation }: any) {
                 <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="Current Password"
+                  placeholder="Nykyinen Salasana"
                   placeholderTextColor={colors.textSecondary}
                   secureTextEntry
                   value={formData.currentPassword}
@@ -192,7 +216,7 @@ export default function SettingsPage({ navigation }: any) {
                 <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="New Password"
+                  placeholder="Uusi Salasana"
                   placeholderTextColor={colors.textSecondary}
                   secureTextEntry
                   value={formData.newPassword}
@@ -207,7 +231,7 @@ export default function SettingsPage({ navigation }: any) {
                 <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
                 <TextInput
                   style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="Confirm Password"
+                  placeholder="Vahvista Salasana"
                   placeholderTextColor={colors.textSecondary}
                   secureTextEntry
                   value={formData.confirmPassword}
@@ -225,13 +249,13 @@ export default function SettingsPage({ navigation }: any) {
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={globalStyles.buttonText}>Change Password</Text>
+                <Text style={globalStyles.buttonText}>Vaihda Salasana</Text>
               )}
             </TouchableOpacity>
           </View>
 
           {/* Billing Section */}
-          <Text style={globalStyles.subheading}>Billing</Text>
+          <Text style={globalStyles.subheading}>Maksaminen</Text>
 
           <TouchableOpacity
             style={[globalStyles.card, globalStyles.button, { marginBottom: 16 }]}
@@ -240,7 +264,7 @@ export default function SettingsPage({ navigation }: any) {
             <View style={styles.billingRow}>
               <CreditCard size={20} color={colors.primary} />
               <Text style={[globalStyles.bodyText, { flex: 1, marginLeft: 12 }]}>
-                Billing Information
+                Laskutustiedot
               </Text>
               <Text style={{ color: colors.textSecondary }}>→</Text>
             </View>
@@ -248,7 +272,7 @@ export default function SettingsPage({ navigation }: any) {
 
 
           {/* Logout Section */}
-          <Text style={globalStyles.subheading}>Session</Text>
+          <Text style={globalStyles.subheading}>Istunto</Text>
 
           <View style={globalStyles.card}>
             <TouchableOpacity
@@ -258,13 +282,13 @@ export default function SettingsPage({ navigation }: any) {
             >
               <View style={styles.deleteButtonContent}>
                 <LogOut size={18} color="#fff" />
-                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Log Out</Text>
+                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Kirjaudu ulos</Text>
               </View>
             </TouchableOpacity>
           </View>
 
           {/* Delete Account Section */}
-          <Text style={globalStyles.subheading}>Danger Zone</Text>
+          <Text style={globalStyles.subheading}>Vaaravyöhyke</Text>
 
           <View style={globalStyles.card}>
 
@@ -275,7 +299,7 @@ export default function SettingsPage({ navigation }: any) {
             >
               <View style={styles.deleteButtonContent}>
                 <Trash2 size={18} color="#fff" />
-                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Delete Account</Text>
+                <Text style={[globalStyles.buttonText, { marginLeft: 8 }]}>Poista Käyttäjä</Text>
               </View>
             </TouchableOpacity>
 
@@ -283,13 +307,13 @@ export default function SettingsPage({ navigation }: any) {
               <>
                 <View style={globalStyles.divider} />
                 <Text style={[globalStyles.bodyText, { color: colors.danger, marginVertical: 12 }]}>
-                  Warning: This action cannot be undone.
+                  Varoitus: Tämä toiminto poistaa tilisi pysyvästi. Syötä salasana vahvistaaksesi tilin poiston.
                 </Text>
                 <View style={styles.inputWithIcon}>
                   <Lock size={16} color={colors.textSecondary} style={styles.inputIcon} />
                   <TextInput
                     style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Enter password to confirm"
+                    placeholder="Salasana"
                     placeholderTextColor={colors.textSecondary}
                     secureTextEntry
                     value={deletePassword}
@@ -307,7 +331,7 @@ export default function SettingsPage({ navigation }: any) {
                     }}
                     disabled={isLoading}
                   >
-                    <Text style={[globalStyles.buttonText, { color: colors.text }]}>Cancel</Text>
+                    <Text style={[globalStyles.buttonText, { color: colors.text }]}>Peruuta</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -318,7 +342,7 @@ export default function SettingsPage({ navigation }: any) {
                     {isLoading ? (
                       <ActivityIndicator color="#fff" />
                     ) : (
-                      <Text style={globalStyles.buttonText}>Confirm Delete</Text>
+                      <Text style={globalStyles.buttonText}>Vahvista</Text>
                     )}
                   </TouchableOpacity>
                 </View>

@@ -1,4 +1,10 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { 
+  deleteUser as deleteAuthUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  User
+} from "firebase/auth";
+import { collection, doc, getDoc, getDocs, query, setDoc, writeBatch } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
 export type UserProfile = {
@@ -75,4 +81,52 @@ export const createUserDocument = async (
     username: null,
     createdAt: new Date(),
   });
+};
+
+/**
+ * Delete user account and all associated data
+ * @param user - Current Firebase user
+ * @param password - User's password for re-authentication
+ */
+export const deleteUserAccount = async (
+  user: User,
+  password: string,
+): Promise<void> => {
+  if (!user.email) {
+    throw new Error("User does not have an email");
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    const username = userDoc.data()?.username;
+
+    const batch = writeBatch(db);
+
+    batch.delete(doc(db, "users", user.uid));
+
+    if (username) {
+      batch.delete(doc(db, "usernames", username.toLowerCase()));
+    }
+
+    // Delete related subcollections
+    /* const coursesSnapshot = await getDocs(
+      query(collection(db, "users", user.uid, "courses"))
+    );
+    coursesSnapshot.forEach((doc) => batch.delete(doc.ref)); */
+
+    await batch.commit();
+    await deleteAuthUser(user);
+  } catch (error: any) {
+    // Handle specific errors
+    if (error.code === "auth/wrong-password") {
+      throw new Error("Incorrect password");
+    }
+    if (error.code === "auth/requires-recent-login") {
+      throw new Error("Please log in again before deleting account");
+    }
+    throw new Error(`Failed to delete account: ${error.message}`);
+  }
 };

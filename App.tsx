@@ -83,7 +83,7 @@ export default function App() {
 const styles = StyleSheet.create({
   loading: {
     flex: 1,
-    justify: "center",
+    justifyContent: "center",
     alignItems: "center",
   },
 });
