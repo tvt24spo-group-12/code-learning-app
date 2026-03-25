@@ -1,0 +1,48 @@
+[
+  {
+    "id": "sum-two-numbers",
+    "title": "Sum of Two Numbers",
+    "description": "Write a function that takes two integers and returns their sum.",
+    "functionName": "sumTwo",
+    "functionArgs": [
+      { "name": "a", "type": "int" },
+      { "name": "b", "type": "int" }
+    ],
+    "returnType": "int",
+    "inputParser": {
+      "cpp": "int a,b; cin >> a >> b;",
+      "python": "a, b = map(int, input().split())"
+    },
+    "outputPrinter": {
+      "cpp": "cout << result << endl;",
+      "python": "print(result)"
+    },
+    "testCases": [
+      { "input": "2 3", "expectedOutput": "5" },
+      { "input": "-1 5", "expectedOutput": "4" }
+    ]
+  },
+
+  {
+    "id": "max-list",
+    "title": "Maximum of a List",
+    "description": "Write a function that takes a list of integers and returns the maximum value.",
+    "functionName": "maxOfList",
+    "functionArgs": [
+      { "name": "arr", "type": "vector<int>" }
+    ],
+    "returnType": "int",
+    "inputParser": {
+      "cpp": "int n; std::cin >> n; std::vector<int> arr(n); for(int i=0;i<n;i++) std::cin >> arr[i];",
+      "python": "arr = list(map(int, input().split()))\narr=arr[1:]"
+    },
+    "outputPrinter": {
+      "cpp": "std::cout << result << std::endl;",
+      "python": "print(result)"
+    },
+    "testCases": [
+      { "input": "5 1 3 2 4 5", "expectedOutput": "5" },
+      { "input": "3 -1 -2 -3", "expectedOutput": "-1" }
+    ]
+  }
+]

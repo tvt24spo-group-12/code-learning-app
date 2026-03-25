@@ -6,133 +6,129 @@ const {
   containers,
   runDocker,
 } = require("./containerManager");
+const {
+  generateCppWrapper,
+  saveCppFile,
+} = require("./wrappers/dynamicWrapperCpp");
+const {
+  generatePythonWrapper,
+  savePythonFile,
+} = require("./wrappers/dynamicWrapperPy");
 
 const ALLOWED_LANGUAGES = ["python", "javascript", "cpp"];
 const MAX_CODE_SIZE = 50000;
 const TMP_DIR = path.join(__dirname, "..", "..", "tmp");
 
-if (!fs.existsSync(TMP_DIR)) {
-  fs.mkdirSync(TMP_DIR, { recursive: true });
+if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+
+function getExt(lang) {
+  return { python: "py", javascript: "js", cpp: "cpp" }[lang];
 }
 
-function runCode(language, code, stdin, callback) {
-  (async () => {
-    try {
-      if (!ALLOWED_LANGUAGES.includes(language)) {
-        return callback("Error: Unsupported language");
-      }
-      if (typeof code !== "string" || code.length > MAX_CODE_SIZE) {
-        return callback("Error: Invalid code size (max 50KB)");
-      }
-      if (stdin && typeof stdin !== "string") {
-        return callback("Error: Invalid stdin");
-      }
+async function runCode(language, userCode, stdin, problemMeta, callback) {
+  try {
+    if (!ALLOWED_LANGUAGES.includes(language))
+      return callback("Error: Unsupported language");
+    if (typeof userCode !== "string" || userCode.length > MAX_CODE_SIZE)
+      return callback("Error: Code too long");
+    if (stdin && typeof stdin !== "string")
+      return callback("Error: Invalid stdin");
 
-      await ensureContainer(language);
+    await ensureContainer(language);
 
+    let filePath;
+    if (language === "cpp" && problemMeta) {
+      const wrappedCode = generateCppWrapper(userCode, problemMeta);
+      filePath = saveCppFile(wrappedCode, TMP_DIR);
+    } else if (language === "python" && problemMeta) {
+      const wrappedCode = generatePythonWrapper(userCode, problemMeta);
+      filePath = savePythonFile(wrappedCode, TMP_DIR);
+    } else {
       const filename = `code_${Date.now()}.${getExt(language)}`;
-      const filePath = path.join(TMP_DIR, filename);
+      filePath = path.join(TMP_DIR, filename);
+      fs.writeFileSync(filePath, userCode);
+    }
 
-      fs.writeFileSync(filePath, code);
+    const containerFilePath = `/tmp/${path.basename(filePath)}`;
+    await runDocker([
+      "cp",
+      filePath,
+      `${containers[language].name}:${containerFilePath}`,
+    ]);
 
-      const containerFilePath = `/tmp/${filename}`;
-      await runDocker([
-        "cp",
-        filePath,
-        `${containers[language].name}:${containerFilePath}`,
-      ]);
+    let cmd;
+    if (language === "cpp") {
+      cmd = [
+        "exec",
+        "-i",
+        containers[language].name,
+        "bash",
+        "-c",
+        `g++ -O0 ${containerFilePath} -o /tmp/output && /tmp/output`,
+      ];
+    } else if (language === "python") {
+      cmd = [
+        "exec",
+        "-i",
+        containers[language].name,
+        "python",
+        containerFilePath,
+      ];
+    } else {
+      cmd = [
+        "exec",
+        "-i",
+        containers[language].name,
+        "node",
+        containerFilePath,
+      ];
+    }
 
-      let cmd;
+    const proc = spawn("docker", cmd);
 
+    let output = "",
+      error = "";
+    proc.stdout.on("data", (d) => (output += d));
+    proc.stderr.on("data", (d) => (error += d));
+
+    proc.stdin.write(stdin || "");
+    proc.stdin.end();
+
+    const timeout = setTimeout(() => proc.kill("SIGKILL"), 5000);
+
+    proc.on("close", async () => {
+      clearTimeout(timeout);
+
+      try {
+        await runDocker([
+          "exec",
+          containers[language].name,
+          "rm",
+          "-f",
+          containerFilePath,
+        ]);
+      } catch {}
       if (language === "cpp") {
-        cmd = [
-          "exec",
-          "-i",
-          containers[language].name,
-          "bash",
-          "-c",
-          `cd /home && g++ -O0 ${containerFilePath} -o ./output && ./output`,
-        ];
-      } else if (language === "python") {
-        cmd = [
-          "exec",
-          "-i",
-          containers[language].name,
-          "python",
-          containerFilePath,
-        ];
-      } else {
-        cmd = [
-          "exec",
-          "-i",
-          containers[language].name,
-          "node",
-          containerFilePath,
-        ];
-      }
-
-      const proc = spawn("docker", cmd);
-
-      let output = "";
-      let error = "";
-
-      proc.stdout.on("data", (d) => (output += d));
-      proc.stderr.on("data", (d) => (error += d));
-
-      proc.stdin.write(stdin || "");
-      proc.stdin.end();
-
-      const timeout = setTimeout(() => {
-        proc.kill("SIGKILL");
-      }, 5000);
-
-      proc.on("close", async () => {
-        clearTimeout(timeout);
-
         try {
           await runDocker([
             "exec",
             containers[language].name,
             "rm",
             "-f",
-            containerFilePath,
+            "/tmp/output",
           ]);
         } catch {}
+      }
 
-        if (language === "cpp") {
-          try {
-            await runDocker([
-              "exec",
-              containers[language].name,
-              "rm",
-              "-f",
-              "/home/output",
-            ]);
-          } catch {}
-        }
+      try {
+        fs.unlinkSync(filePath);
+      } catch {}
 
-        try {
-          fs.unlinkSync(filePath);
-        } catch {}
-
-        const sanitizedOutput = (error || output)
-          .slice(0, 100000)
-          .replace(/\x00/g, "");
-
-        callback(sanitizedOutput);
-      });
-    } catch (err) {
-      callback(err.message);
-    }
-  })();
-}
-
-function getExt(lang) {
-  return {
-    python: "py",
-    javascript: "js",
-    cpp: "cpp",
-  }[lang];
+      callback((error || output).slice(0, 100000).replace(/\x00/g, ""));
+    });
+  } catch (err) {
+    callback(err.message);
+  }
 }
 
 module.exports = runCode;

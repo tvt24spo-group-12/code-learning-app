@@ -1,5 +1,6 @@
 const express = require("express");
-const runRoute = require("./run");
+const runRoute = require("./routes/run");
+const submitRoute = require("./routes/submit");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use((err, req, res, next) => {
 });
 
 app.use("/run", runRoute);
+app.use("/submit", submitRoute);
 
 app.listen(3000, () => {
   console.log(`Server running on port 3000`);

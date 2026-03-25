@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const runCode = require("./codeRunner");
+const runCode = require("../codeRunner");
 
 const requestCounts = new Map();
 const RATE_LIMIT = 10;
@@ -24,7 +24,7 @@ function checkRateLimit(ip) {
   return true;
 }
 
-const API_KEY = "secret123";
+//const API_KEY = "secret123";
 
 router.post("/", (req, res) => {
   const clientIp = req.ip;
