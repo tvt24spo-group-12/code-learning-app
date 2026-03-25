@@ -13,6 +13,7 @@ import {
   getEmailFromUsername,
   createUserDocument,
   UserProfile,
+  deleteUserAccount,
 } from "../services/userService";
 import {
   checkUsernameExists,
@@ -28,6 +29,7 @@ type AuthContextType = {
   checkUsernameExists: (username: string) => Promise<boolean>;
   setUsername: (username: string) => Promise<void>;
   isLoading: boolean;
+  deleteAccount: (password: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -106,6 +108,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  const deleteAccount = async (password: string) => {
+    if (!user) {
+      throw new Error("No user logged in");
+    }
+
+    await deleteUserAccount(user, password);
+    setUser(null);
+    setUserProfile(null);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -117,6 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         checkUsernameExists: checkUsername,
         setUsername,
         isLoading,
+        deleteAccount,
       }}
     >
       {children}
