@@ -5,10 +5,11 @@ import { getExercises } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
 import { getCourses } from '../services/exerciseService';
+import {Check} from "lucide-react-native"
 const CoursePage = ({ navigation }: any) => {
   const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
   const [loading, setLoading] = useState(true);
-
+  
   useEffect(() => {
 
             
@@ -19,6 +20,7 @@ const CoursePage = ({ navigation }: any) => {
     try {
       setLoading(true);
      const data = await getCourses()
+     
       setExercises(data)
     
         
@@ -39,6 +41,8 @@ const CoursePage = ({ navigation }: any) => {
       <View style={styles.cardInfo}>
         <Text style={styles.cardTitle}>{item.title}</Text>
         <Text style={styles.cardSubtitle}>{item.description}</Text>
+        {item.done && <Check color="#32aa14"></Check>}
+        
       </View>
       <ChevronRight size={18} color="#666" />
     </TouchableOpacity>
