@@ -120,13 +120,6 @@ export const deleteUserAccount = async (
     await batch.commit();
     await deleteAuthUser(user);
   } catch (error: any) {
-    // Handle specific errors
-    if (error.code === "auth/wrong-password") {
-      throw new Error("Incorrect password");
-    }
-    if (error.code === "auth/requires-recent-login") {
-      throw new Error("Please log in again before deleting account");
-    }
     throw new Error(`Failed to delete account: ${error.message}`);
   }
 };
