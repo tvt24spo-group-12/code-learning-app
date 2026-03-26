@@ -5,13 +5,14 @@ function generatePythonWrapper(userCode, problemMeta) {
   const inputParser = problemMeta.inputParser.python;
   const outputPrinter = problemMeta.outputPrinter.python;
   const functionName = problemMeta.functionName;
+  const argsList = problemMeta.functionArgs.map((a) => a.name).join(", ");
 
   return `
 ${userCode}
 
 
 ${inputParser}
-result = ${functionName}(${problemMeta.functionArgs.map(a => a.name).join(", ")})
+result = ${functionName}(${argsList})
 ${outputPrinter}
 `;
 }

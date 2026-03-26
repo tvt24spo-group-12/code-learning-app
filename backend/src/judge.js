@@ -7,7 +7,7 @@ const problems = JSON.parse(fs.readFileSync(PROBLEMS_PATH, "utf-8"));
 
 async function judgeSubmission(language, userCode, problemId, callback) {
   const problemMeta = problems.find(p => p.id === problemId);
-  if (!problemMeta && language === "cpp") return callback({ error: "Problem metadata not found" });
+  if (!problemMeta) return callback({ error: "Problem metadata not found" });
 
   const results = [];
   let passedCount = 0;
