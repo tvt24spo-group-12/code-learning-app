@@ -89,7 +89,11 @@ export default function Tabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="CoursePage" component={CoursePage} />
-      <Tab.Screen name="AccountPage" component={AccountPage} />
+      <Tab.Screen 
+        name="AccountPage" 
+        component={AccountPage} 
+        options={{ headerShown: false }} 
+      />
       <Tab.Screen name="Settings" component={SettingsPage} />
       <Tab.Screen
         name="Billing"
