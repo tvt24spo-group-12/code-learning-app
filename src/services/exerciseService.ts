@@ -1,7 +1,7 @@
 import { MOCK_EXERCISES } from '../data/mockExercises';
 import { Exercise } from '../types/exercise';
 import { db } from "../../firebaseConfig";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore"; 
+import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"; 
 import { useState } from 'react';
 import { Percent } from 'lucide-react-native';
 
@@ -28,5 +28,10 @@ id:doc.id,
 
 }))
 }
-
+export const setDone= async(id:string)=>{
+  const task = doc(db,"Courses","C++MockCourse","MockTask",id)
+  await updateDoc(task,{
+    done:true
+  })
+}
 
