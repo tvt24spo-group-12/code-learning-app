@@ -4,7 +4,7 @@ import {
   EmailAuthProvider,
   User
 } from "firebase/auth";
-import { collection, doc, getDoc, getDocs, query, setDoc, writeBatch } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, setDoc, writeBatch, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
 export type UserProfile = {
@@ -12,6 +12,15 @@ export type UserProfile = {
   email: string;
   username: string | null;
   hasUsername: boolean;
+};
+
+export type PaymentMethod = {
+  id: string;
+  cardNumber: string;
+  cardHolder: string;
+  expiryDate: string;
+  isDefault: boolean;
+  createdAt: Date;
 };
 
 /**
@@ -121,5 +130,139 @@ export const deleteUserAccount = async (
     await deleteAuthUser(user);
   } catch (error: any) {
     throw new Error(`Failed to delete account: ${error.message}`);
+  }
+};
+
+/**
+ * Fetch payment methods for a user
+ * @param uid - User ID
+ * @returns Array of payment methods or empty array
+ */
+export const fetchPaymentMethods = async (uid: string): Promise<PaymentMethod[]> => {
+  try {
+    const userDoc = await getDoc(doc(db, "users", uid));
+    if (userDoc.exists()) {
+      const paymentMethods = userDoc.data().paymentMethods || [];
+      return paymentMethods.map((pm: any) => ({
+        ...pm,
+        createdAt: pm.createdAt?.toDate?.() || new Date(),
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching payment methods:", error);
+    return [];
+  }
+};
+
+/**
+ * Add a new payment method to user's document
+ * @param uid - User ID
+ * @param cardData - Card information (cardNumber, cardHolder, expiryDate)
+ * @param isDefault - Whether this should be the default payment method
+ */
+export const addPaymentMethod = async (
+  uid: string,
+  cardData: { cardNumber: string; cardHolder: string; expiryDate: string },
+  isDefault: boolean = false
+): Promise<void> => {
+  try {
+    const userRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      throw new Error("User document not found");
+    }
+
+    // Get last 4 digits and mask the card number
+    const last4 = cardData.cardNumber.replace(/\s/g, "").slice(-4);
+    const maskedCardNumber = `•••• •••• •••• ${last4}`;
+
+    const paymentMethodId = `pm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const newPaymentMethod: PaymentMethod = {
+      id: paymentMethodId,
+      cardNumber: maskedCardNumber,
+      cardHolder: cardData.cardHolder,
+      expiryDate: cardData.expiryDate,
+      isDefault,
+      createdAt: new Date(),
+    };
+
+    if (isDefault) {
+      const currentMethods = userDoc.data().paymentMethods || [];
+      const updatedMethods = currentMethods.map((pm: any) => ({
+        ...pm,
+        isDefault: false,
+      }));
+      await updateDoc(userRef, { paymentMethods: updatedMethods });
+    }
+
+    await updateDoc(userRef, {
+      paymentMethods: arrayUnion(newPaymentMethod),
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to add payment method: ${error.message}`);
+  }
+};
+
+/**
+ * Delete a payment method from user's document
+ * @param uid - User ID
+ * @param paymentMethodId - ID of the payment method to delete
+ */
+export const deletePaymentMethod = async (
+  uid: string,
+  paymentMethodId: string
+): Promise<void> => {
+  try {
+    const userRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      throw new Error("User document not found");
+    }
+
+    const paymentMethods = userDoc.data().paymentMethods || [];
+    const methodToDelete = paymentMethods.find((pm: any) => pm.id === paymentMethodId);
+
+    if (!methodToDelete) {
+      throw new Error("Payment method not found");
+    }
+
+    await updateDoc(userRef, {
+      paymentMethods: arrayRemove(methodToDelete),
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to delete payment method: ${error.message}`);
+  }
+};
+
+/**
+ * Set a payment method as default
+ * @param uid - User ID
+ * @param paymentMethodId - ID of the payment method to set as default
+ */
+export const setDefaultPaymentMethod = async (
+  uid: string,
+  paymentMethodId: string
+): Promise<void> => {
+  try {
+    const userRef = doc(db, "users", uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      throw new Error("User document not found");
+    }
+
+    const paymentMethods = userDoc.data().paymentMethods || [];
+    const updatedMethods = paymentMethods.map((pm: any) => ({
+      ...pm,
+      isDefault: pm.id === paymentMethodId,
+    }));
+
+    await updateDoc(userRef, { paymentMethods: updatedMethods });
+  } catch (error: any) {
+    throw new Error(`Failed to set default payment method: ${error.message}`);
   }
 };
