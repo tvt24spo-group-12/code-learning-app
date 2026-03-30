@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 //import { getExerciseById } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { Check, X } from 'lucide-react-native';
-import { getCourses } from '../services/exerciseService';
+import { getCourses,setDone } from '../services/exerciseService';
 
 const ExerciseScreen = ({ route }: any) => {
   const { exerciseId,title } = route.params;
@@ -14,6 +14,10 @@ const ExerciseScreen = ({ route }: any) => {
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if(isCorrect === true){
+      console.log(isCorrect)
+      setDone(exerciseId)
+    }
     const fetchExercise = async () => {
       try {
         setLoading(true);
@@ -28,7 +32,7 @@ const ExerciseScreen = ({ route }: any) => {
     };
 
     fetchExercise();
-  }, [exerciseId]);
+  }, [exerciseId, isCorrect]);
 
   const checkAnswer = (option: string) => {
     setSelectedOption(option);
