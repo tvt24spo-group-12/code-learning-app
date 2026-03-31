@@ -24,7 +24,7 @@ function checkRateLimit(ip) {
   return true;
 }
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const { language, code, problemId } = req.body;
 
   if (!language || !code || !problemId) {
@@ -35,9 +35,12 @@ router.post("/", (req, res) => {
     return res.status(429).json({ error: "Rate limit exceeded" });
   }
 
-  judgeSubmission(language, code, problemId, (result) => {
+  try {
+    const result = await judgeSubmission(language, code, problemId);
     res.json(result);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

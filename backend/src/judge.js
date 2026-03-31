@@ -5,43 +5,49 @@ const fs = require("fs");
 const PROBLEMS_PATH = path.join(__dirname, "..", "data", "problems.json");
 const problems = JSON.parse(fs.readFileSync(PROBLEMS_PATH, "utf-8"));
 
-async function judgeSubmission(language, userCode, problemId, callback) {
+async function judgeSubmission(language, userCode, problemId) {
   const problemMeta = problems.find(p => p.id === problemId);
-  if (!problemMeta) return callback({ error: "Problem metadata not found" });
+  if (!problemMeta) throw new Error("Problem metadata not found");
 
   const results = [];
   let passedCount = 0;
 
   for (const test of problemMeta.testCases) {
-    await new Promise(resolve => {
-      const start = Date.now();
+    const start = Date.now();
 
-      runCode(language, userCode, test.input, problemMeta, output => {
-        const elapsedTime = Date.now() - start;
-        const normalizedOutput = output.trim();
-        const normalizedExpected = test.expectedOutput.trim();
-        const passed = normalizedOutput === normalizedExpected;
+    try {
+      const output = await runCode(language, userCode, test.input, problemMeta);
+      const elapsedTime = Date.now() - start;
+      const normalizedOutput = output.trim();
+      const normalizedExpected = test.expectedOutput.trim();
+      const passed = normalizedOutput === normalizedExpected;
 
-        if (passed) passedCount++;
+      if (passed) passedCount++;
 
-        results.push({
-          input: test.input,
-          expected: test.expectedOutput,
-          output,
-          passed,
-          time: elapsedTime
-        });
-
-        resolve();
+      results.push({
+        input: test.input,
+        expected: test.expectedOutput,
+        output,
+        passed,
+        time: elapsedTime
       });
-    });
+    } catch (err) {
+      const elapsedTime = Date.now() - start;
+      results.push({
+        input: test.input,
+        expected: test.expectedOutput,
+        output: err.message,
+        passed: false,
+        time: elapsedTime
+      });
+    }
   }
 
-  callback({
+  return {
     total: problemMeta.testCases.length,
     passed: passedCount,
     results
-  });
+  };
 }
 
 module.exports = judgeSubmission;

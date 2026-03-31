@@ -26,7 +26,7 @@ function checkRateLimit(ip) {
 
 //const API_KEY = "secret123";
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   const clientIp = req.ip;
   if (!checkRateLimit(clientIp)) {
     return res
@@ -42,14 +42,17 @@ router.post("/", (req, res) => {
 
   const start = Date.now();
 
-  runCode(language, code, stdin, (output) => {
+  try {
+    const output = await runCode(language, code, stdin);
     const time = Date.now() - start;
 
     res.send({
       output,
       time,
     });
-  });
+  } catch (err) {
+    res.status(500).send({ error: err.message });
+  }
 });
 
 module.exports = router;

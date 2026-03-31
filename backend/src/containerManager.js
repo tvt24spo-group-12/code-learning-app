@@ -6,10 +6,6 @@ const containers = {
     name: "python_runner",
     image: "python:3.11",
   },
-  javascript: {
-    name: "node_runner",
-    image: "node:20",
-  },
   cpp: {
     name: "cpp_runner",
     image: "gcc",
