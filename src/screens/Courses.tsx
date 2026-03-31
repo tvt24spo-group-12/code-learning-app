@@ -9,7 +9,7 @@ import {Check} from "lucide-react-native"
 const CoursePage = ({ navigation }: any) => {
   const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
   const [loading, setLoading] = useState(true);
-  
+  const [title, setTitle] =useState<string[]>([])
   useEffect(() => {
 
             
@@ -21,7 +21,7 @@ const CoursePage = ({ navigation }: any) => {
       setLoading(true);
       const courses = await getCourses()
       const courseIds= courses.map(course=>course.id)
-     
+     setTitle(courseIds)
       const data = await fetchTasks(courseIds)
 
       
@@ -38,19 +38,25 @@ const CoursePage = ({ navigation }: any) => {
   };
 
   const renderItem = ({ item }: { item: Exercise }) => (
-    <TouchableOpacity 
+    <><View>
+      {title.map(s => s.toString() == item.courseId) && (
+        <Text style={styles.courseTitle}>{item.courseId}</Text>
+      )}
+    </View><TouchableOpacity
+
       style={styles.card}
       // Varmista, että 'ExerciseDetail' on määritelty StackNavigatorissa!
-      onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title,courseId:item.courseId })}
+      onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title, courseId: item.courseId })}
     >
-      <View style={styles.cardInfo}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSubtitle}>{item.description}</Text>
-        {item.done && <Check color="#32aa14"></Check>}
-        
-      </View>
-      <ChevronRight size={18} color="#666" />
-    </TouchableOpacity>
+        <View style={styles.cardInfo}>
+
+          <Text style={styles.cardTitle}>{item.title}</Text>
+          <Text style={styles.cardSubtitle}>{item.description}</Text>
+          {item.done && <Check color="#32aa14"></Check>}
+
+        </View>
+        <ChevronRight size={18} color="#666" />
+      </TouchableOpacity></>
   );
 
   if (loading) {
@@ -68,10 +74,12 @@ const CoursePage = ({ navigation }: any) => {
         renderItem={renderItem}
         keyExtractor={item => item.id} 
         contentContainerStyle={styles.list}
-        ListHeaderComponent={<Text style={styles.headerTitle}>C++ Harjoitukset</Text>}
+       
       />
     </SafeAreaView>
+    
   );
+  
 };
 const styles = StyleSheet.create({
   container: {
@@ -119,6 +127,12 @@ const styles = StyleSheet.create({
   fontWeight: 'bold', 
   color: '#000', 
   marginBottom: 20
+},courseTitle: { 
+  fontSize: 20,
+  fontWeight: 'bold',
+  color: '#000',
+  marginBottom:10,
+  marginTop:10,
 },
 });
 export default CoursePage;
