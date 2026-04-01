@@ -12,6 +12,9 @@ services:
       - cpp_runner
     networks:
       - executor-net
+    env_file:
+      - .env
+    
 
   
   python_runner:

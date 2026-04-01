@@ -24,7 +24,6 @@ function checkRateLimit(ip) {
   return true;
 }
 
-//const API_KEY = "secret123";
 
 router.post("/", async (req, res) => {
   const clientIp = req.ip;

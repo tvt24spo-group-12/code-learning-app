@@ -1,3 +1,5 @@
+
+const apiKeyMiddleware = require("./utils/apiKeyMiddleware");
 const express = require("express");
 const runRoute = require("./routes/run");
 const submitRoute = require("./routes/submit");
@@ -14,9 +16,11 @@ app.use((err, req, res, next) => {
   next();
 });
 
+app.use(apiKeyMiddleware)
+
 app.use("/run", runRoute);
 app.use("/submit", submitRoute);
 
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0", () => {
   console.log(`Server running on port 3000`);
 });
