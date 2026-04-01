@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getExercises } from '../services/exerciseService';
+
 import { Exercise } from '../types/exercise';
 import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
-import { getCourses } from '../services/exerciseService';
+import { getCourses, fetchTasks } from '../services/exerciseService';
 import {Check} from "lucide-react-native"
 const CoursePage = ({ navigation }: any) => {
   const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
@@ -19,8 +19,13 @@ const CoursePage = ({ navigation }: any) => {
   const fetchExercises = async () => {
     try {
       setLoading(true);
-     const data = await getCourses()
+      const courses = await getCourses()
+      const courseIds= courses.map(course=>course.id)
      
+      const data = await fetchTasks(courseIds)
+
+      
+   
       setExercises(data)
     
         
@@ -36,7 +41,7 @@ const CoursePage = ({ navigation }: any) => {
     <TouchableOpacity 
       style={styles.card}
       // Varmista, että 'ExerciseDetail' on määritelty StackNavigatorissa!
-      onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title })}
+      onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title,courseId:item.courseId })}
     >
       <View style={styles.cardInfo}>
         <Text style={styles.cardTitle}>{item.title}</Text>

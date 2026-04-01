@@ -4,26 +4,28 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 //import { getExerciseById } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { Check, X } from 'lucide-react-native';
-import { getCourses,setDone } from '../services/exerciseService';
+import { fetchTasks, getCourses,getTask,setDone } from '../services/exerciseService';
 
 const ExerciseScreen = ({ route }: any) => {
-  const { exerciseId,title } = route.params;
+  const { exerciseId,title, courseId } = route.params;
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-
+  const [attempts,setAttempts] = useState<number>(0)
+  
   useEffect(() => {
     if(isCorrect === true){
       console.log(isCorrect)
-      setDone(exerciseId)
+      setDone(courseId,exerciseId,attempts)
     }
     const fetchExercise = async () => {
       try {
         setLoading(true);
-       const data = await getCourses();
-      const assingment = data.find((e)=>e.id===exerciseId)
-      setExercise(assingment??null)
+        
+       const data = await getTask(courseId,exerciseId)
+     
+      setExercise(data);
       } catch (error) {
         console.error('Error fetching exercise:', error);
       } finally {
@@ -41,8 +43,10 @@ const ExerciseScreen = ({ route }: any) => {
     
     if (correct) {
       Alert.alert('Good!', 'Excellent work!', [{ text: 'Excellent' }]);
+      setAttempts(+1)
     } else {
       Alert.alert('Ouch!', 'Try again!', [{ text: 'OK' }]);
+      setAttempts(+1)
     }
   };
 
