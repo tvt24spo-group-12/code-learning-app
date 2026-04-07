@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -14,32 +14,26 @@ import { ArrowLeft, CreditCard, Plus, Trash2, Eye, EyeOff } from 'lucide-react-n
 import { createGlobalStyles } from '../theme/globalStyles';
 import { useTheme } from '../context/ThemeContext';
 import { getTheme } from '../theme/theme';
-
-type PaymentMethod = {
-  id: string;
-  cardNumber: string;
-  cardHolder: string;
-  expiryDate: string;
-  isDefault: boolean;
-};
-
-type NewCardData = {
-  cardNumber: string;
-  cardHolder: string;
-  expiryDate: string;
-  cvv: string;
-};
+import { useAuth } from "../context/AuthContext";
+import { 
+  fetchPaymentMethods, 
+  addPaymentMethod, 
+  deletePaymentMethod, 
+  setDefaultPaymentMethod,
+  type PaymentMethod 
+} from '../services/userService';
 
 export default function BillingPage({ navigation }: any) {
     const { theme } = useTheme();
     const colors = getTheme(theme);
     const globalStyles = createGlobalStyles(theme);
+    const { user } = useAuth();
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showAddCard, setShowAddCard] = useState(false);
     const [showCVV, setShowCVV] = useState(false);
-    const [newCard, setNewCard] = useState<NewCardData>({
+    const [newCard, setNewCard] = useState<{ cardNumber: string; cardHolder: string; expiryDate: string; cvv: string }>({
         cardNumber: '',
         cardHolder: '',
         expiryDate: '',
@@ -49,25 +43,14 @@ export default function BillingPage({ navigation }: any) {
     // Load payment methods and invoices on mount
     useEffect(() => {
         loadBillingData();
-    }, []);
+    }, [user?.uid]);
 
     const loadBillingData = async () => {
+        if (!user?.uid) return;
         try {
             setIsLoading(true);
-            // TODO: Fetch payment methods from Firebase
-            // const methods = await fetchPaymentMethods();
-            // setPaymentMethods(methods);
-
-            // Placeholder data for UI
-            setPaymentMethods([
-                {
-                    id: '1',
-                    cardNumber: '•••• •••• •••• 4242',
-                    cardHolder: 'John Doe',
-                    expiryDate: '12/25',
-                    isDefault: true,
-                },
-            ]);
+            const methods = await fetchPaymentMethods(user.uid);
+            setPaymentMethods(methods);
         } catch (error) {
             Alert.alert('Virhe', 'Laskutietojen lataaminen epäonnistui');
             console.error(error);
@@ -98,11 +81,19 @@ export default function BillingPage({ navigation }: any) {
             Alert.alert('Virhe', 'Täytä kaikki kentät');
             return;
         };
+        if (!user?.uid) {
+            Alert.alert('Virhe', 'Käyttäjä ei ole kirjautunut');
+            return;
+        }
 
         try {
             setIsLoading(true);
-            // TODO: Add payment method to Firebase
-            // const result = await addPaymentMethod(newCard);
+            const isDefault = paymentMethods.length === 0;
+            await addPaymentMethod(user.uid, {
+                cardNumber: newCard.cardNumber,
+                cardHolder: newCard.cardHolder,
+                expiryDate: newCard.expiryDate,
+            }, isDefault);
 
             Alert.alert('Onnistui', 'Maksutapa lisätty');
             setShowAddCard(false);
@@ -123,15 +114,15 @@ export default function BillingPage({ navigation }: any) {
                 text: 'Poista',
                 style: 'destructive',
                 onPress: async () => {
+                    if (!user?.uid) return;
                     try {
                         setIsLoading(true);
-                        // TODO: Delete payment method from Firebase
-                        // await deletePaymentMethod(cardId);
-
+                        await deletePaymentMethod(user.uid, cardId);
                         Alert.alert('Onnistui', 'Maksutapa poistettu');
                         await loadBillingData();
                     } catch (error) {
                         Alert.alert('Virhe', 'Maksutavan poisto epäonnistui');
+                        console.error(error);
                     } finally {
                         setIsLoading(false);
                     }
@@ -141,15 +132,15 @@ export default function BillingPage({ navigation }: any) {
     };
 
     const handleSetDefault = async (cardId: string) => {
+        if (!user?.uid) return;
         try {
             setIsLoading(true);
-            // TODO: Set default payment method in Firebase
-            // await setDefaultPaymentMethod(cardId);
-
+            await setDefaultPaymentMethod(user.uid, cardId);
             Alert.alert('Onnistui', 'Oletusmaksutapa päivitetty');
             await loadBillingData();
         } catch (error) {
             Alert.alert('Virhe', 'Oletusmaksutavan asettaminen epäonnistui');
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -160,7 +151,7 @@ export default function BillingPage({ navigation }: any) {
       <View style={globalStyles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
             <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
@@ -219,11 +210,11 @@ export default function BillingPage({ navigation }: any) {
                     <View style={styles.cardActions}>
                       {!method.isDefault && (
                         <TouchableOpacity
-                          style={[globalStyles.button, { flex: 1, backgroundColor: colors.surface }]}
+                          style={[globalStyles.button, { flex: 1, backgroundColor: colors.background }]}
                           onPress={() => handleSetDefault(method.id)}
                         >
                           <Text style={[globalStyles.buttonText, { color: colors.text }]}>
-                            Set Default
+                            Aseta oletukseksi
                           </Text>
                         </TouchableOpacity>
                       )}
@@ -343,7 +334,7 @@ export default function BillingPage({ navigation }: any) {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[globalStyles.button, { backgroundColor: colors.surface, marginTop: 8 }]}
+                  style={[globalStyles.button, { backgroundColor: colors.background, marginTop: 8 }]}
                   onPress={() => setShowAddCard(false)}
                   disabled={isLoading}
                 >

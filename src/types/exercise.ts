@@ -1,6 +1,7 @@
 export type ExerciseType = 'multiple-choice' | 'code-challenge';
 
 export interface Exercise {
+  courseId:string;
   id: string;
   title: string;
   description: string;
@@ -11,6 +12,6 @@ export interface Exercise {
   options?: string[];
   correctAnswer: string;
   initialCode?: string;
-  attempts:Number;
-  done?:Boolean;
+  attempts:number;
+  done?:boolean;
 }
