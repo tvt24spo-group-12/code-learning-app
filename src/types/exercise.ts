@@ -12,6 +12,5 @@ export interface Exercise {
   options?: string[];
   correctAnswer: string;
   initialCode?: string;
-  attempts:number;
-  done?:boolean;
+
 }

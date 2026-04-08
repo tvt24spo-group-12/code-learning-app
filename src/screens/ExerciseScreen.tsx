@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Exercise } from '../types/exercise';
 import { Check, X } from 'lucide-react-native';
 import { fetchTasks, getCourses,getTask,setDone } from '../services/exerciseService';
+import { fetchUserProfile } from '../services/userService';
+import { useAuth } from '../context/AuthContext';
 
 const ExerciseScreen = ({ route }: any) => {
   const { exerciseId,title, courseId } = route.params;
@@ -13,18 +15,21 @@ const ExerciseScreen = ({ route }: any) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [attempts,setAttempts] = useState<number>(0)
-  
+  const [userid, setUserId] = useState<string>("null")
+  const {userProfile} = useAuth()
+
   useEffect(() => {
+     setUserId(userProfile?.uid || "")
     if(isCorrect === true){
-      console.log(isCorrect)
-      setDone(courseId,exerciseId,attempts)
+      setDone(courseId,exerciseId,attempts, userid)
+    
     }
     const fetchExercise = async () => {
       try {
         setLoading(true);
-        
+
        const data = await getTask(courseId,exerciseId)
-     
+   
       setExercise(data);
       } catch (error) {
         console.error('Error fetching exercise:', error);
