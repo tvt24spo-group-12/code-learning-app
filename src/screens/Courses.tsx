@@ -4,17 +4,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Exercise } from '../types/exercise';
 import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
-import { getCourses, fetchTasks } from '../services/exerciseService';
+import { getCourses, fetchTasks,checkifDone } from '../services/exerciseService';
 import {Check} from "lucide-react-native"
+import { useAuth } from '../context/AuthContext';
 const CoursePage = ({ navigation }: any) => {
   const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
   const [loading, setLoading] = useState(true);
   const [title, setTitle] =useState<string[]>([])
+  const [userid, setUserId] = useState<string>("") 
+  const [completedTasks,setCompletedTasks] = useState<string[]>([])
+  const {userProfile} = useAuth()
   useEffect(() => {
-
-            
+    
+    setUserId(userProfile?.uid || "")
+    
+    if(userid=== "" || userid.length=== 0){
+      setLoading(true)
+    }else{
+      setLoading(false)
+   
     fetchExercises();
-  }, []);
+
+    }
+  
+   
+  }, [userid,userProfile]);
 
   const fetchExercises = async () => {
     try {
@@ -23,7 +37,9 @@ const CoursePage = ({ navigation }: any) => {
       const courseIds= courses.map(course=>course.id)
      setTitle(courseIds)
       const data = await fetchTasks(courseIds)
-
+  
+    const completedtasks = await checkifDone(userid)
+      setCompletedTasks(completedtasks)
       
    
       setExercises(data)
@@ -52,7 +68,7 @@ const CoursePage = ({ navigation }: any) => {
 
           <Text style={styles.cardTitle}>{item.title}</Text>
           <Text style={styles.cardSubtitle}>{item.description}</Text>
-          {item.done && <Check color="#32aa14"></Check>}
+          {completedTasks?.some(task=>task.includes(item.courseId))&& <Check color="#32aa14"></Check>}
 
         </View>
         <ChevronRight size={18} color="#666" />
