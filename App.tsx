@@ -14,6 +14,7 @@ import ExerciseScreen from "./src/screens/ExerciseScreen";
 import Login from "./src/screens/login";
 import Register from "./src/screens/register";
 import UsernameSetup from "./src/screens/usernameSetup";
+import CoursePage from "./src/screens/Courses";
 
 const Stack = createNativeStackNavigator();
 type AuthScreen = "Login" | "Register";

@@ -21,9 +21,12 @@ export default function HomeScreen() {
   useEffect(() => {
     getRecentCourseActivity()
       .then((data) => {
+       
         setActivities(data);
+       
       })
       .catch((error) => {
+        
         console.error("Error fetching activity:", error);
       })
       .finally(() => {
@@ -77,7 +80,7 @@ export default function HomeScreen() {
               <Text
                 style={[globalStyles.bodyText, { color: colors.textSecondary }]}
               >
-                {activity.lastAccessed.toLocaleDateString()}
+                {new Date(activity.lastAccessed).toLocaleDateString()}
               </Text>
             </View>
             <View
