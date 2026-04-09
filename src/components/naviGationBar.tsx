@@ -48,7 +48,7 @@ function TabBar({ state, descriptors, navigation }: any) {
             canPreventDefault: true,
           });
           if (!focused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
+            navigation.navigate({ name: route.name, params: { courseId: undefined }, merge: false });
           }
         };
         const onLongPress = () => {
