@@ -17,7 +17,6 @@ import { getTheme } from '../theme/theme';
 import { useAuth } from '../context/AuthContext';
 
 type FormData = {
-  email: string;
   username: string;
   currentPassword: string;
   newPassword: string;
@@ -29,10 +28,9 @@ export default function SettingsPage({ navigation }: any) {
   const { theme, toggleTheme } = useTheme();
   const colors = getTheme(theme);
   const globalStyles = createGlobalStyles(theme);
-  const { logout, deleteAccount, userProfile, isLoading: authLoading } = useAuth();
+  const { logout, deleteAccount, userProfile, isLoading: authLoading, changeUserPassword, updateProfileData } = useAuth();
 
   const [formData, setFormData] = useState<FormData>({
-    email: '',
     username: '',
     currentPassword: '',
     newPassword: '',
@@ -48,39 +46,72 @@ export default function SettingsPage({ navigation }: any) {
     if (userProfile) {
       setFormData(prev => ({
         ...prev,
-        email: userProfile.email || '',
         username: userProfile.username || '',
       }));
     }
   }, [userProfile]);
 
-  // Placeholder functions for calls
   const handleUpdateProfile = async () => {
+    const usernameChanged = formData.username !== userProfile?.username;
+
+    if (!usernameChanged) {
+      Alert.alert('Tieto', 'Ei muutoksia tallennettavaksi');
+      return;
+    }
+
+    if (!formData.username.trim()) {
+      Alert.alert('Virhe', 'Käyttäjänimi ei voi olla tyhjä');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      //TODO: Implement call to update profile
-      // await updateUserProfile(formData);
+
+      await updateProfileData({ username: formData.username });
+
       Alert.alert('Onnistui', 'Profiili päivitetty onnistuneesti!');
-    } catch (error) {
-      Alert.alert('Virhe', 'Profiilin päivittäminen epäonnistui. Yritä uudestaan.');
+    } catch (error: any) {
+      const errorMessage = error.message || 'Profiilin päivittäminen epäonnistui. Yritä uudestaan.';
+      Alert.alert('Virhe', errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleChangePassword = async () => {
+    if (!formData.currentPassword) {
+      Alert.alert('Virhe', 'Syötä nykyinen salasana');
+      return;
+    }
+
+    if (!formData.newPassword) {
+      Alert.alert('Virhe', 'Syötä uusi salasana');
+      return;
+    }
+
     if (formData.newPassword !== formData.confirmPassword) {
       Alert.alert('Virhe', 'Uudet salasanat eivät täsmää');
       return;
     }
 
+    if (formData.newPassword.length < 6) {
+      Alert.alert('Virhe', 'Salasana tulee olla vähintään 6 merkkiä pitkä');
+      return;
+    }
+
     try {
       setIsLoading(true);
-      //TODO: Implement call to change password
-      // await changeUserPassword(formData.currentPassword, formData.newPassword);
+      await changeUserPassword(formData.currentPassword, formData.newPassword);
       Alert.alert('Onnistui', 'Salasana vaihdettu onnistuneesti!');
-    } catch (error) {
-      Alert.alert('Virhe', 'Salasanan vaihtaminen epäonnistui. Varmista, että nykyinen salasana on oikein ja yritä uudestaan.');
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      }));
+    } catch (error: any) {
+      const errorMessage = error.message || 'Salasanan vaihtaminen epäonnistui. Varmista, että nykyinen salasana on oikein ja yritä uudestaan.';
+      Alert.alert('Virhe', errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -151,21 +182,6 @@ export default function SettingsPage({ navigation }: any) {
           <Text style={globalStyles.subheading}>Käyttäjä Tiedot</Text>
             <View style={globalStyles.card}>
               <View style={styles.inputGroup}>
-                <View style={styles.inputWithIcon}>
-                  <Mail size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                  <TextInput 
-                    style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Email"
-                    placeholderTextColor={colors.textSecondary}
-                    value={formData.email}
-                    onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
-                    editable={!isLoading}
-                    keyboardType="email-address"
-                  />
-                </View>
-
-                <View style={globalStyles.divider} />
-
                 <View style={styles.inputWithIcon}>
                   <User size={16} color={colors.textSecondary} style={styles.inputIcon} />
                   <TextInput 
