@@ -14,6 +14,9 @@ import {
   createUserDocument,
   UserProfile,
   deleteUserAccount,
+  changePassword,
+  updateUserProfile,
+  updateUsername,
 } from "../services/userService";
 import {
   checkUsernameExists,
@@ -30,6 +33,8 @@ type AuthContextType = {
   setUsername: (username: string) => Promise<void>;
   isLoading: boolean;
   deleteAccount: (password: string) => Promise<void>;
+  changeUserPassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateProfileData: (profileData: { username?: string }) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -114,8 +119,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     await deleteUserAccount(user, password);
+
     setUser(null);
     setUserProfile(null);
+  };
+
+  const changeUserPassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    if (!user) {
+      throw new Error("No user logged in");
+    }
+
+    await changePassword(user, currentPassword, newPassword);
+  };
+
+  const updateProfileData = async (profileData: {
+    username?: string;
+  }) => {
+    if (!user) {
+      throw new Error("No user logged in");
+    }
+
+    await updateUserProfile(
+      user.uid,
+      user.email || '',
+      profileData,
+      userProfile?.username || null
+    );
+
+    // Update local profile
+    setUserProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            username: profileData.username || prev.username,
+            hasUsername: !!profileData.username || prev.hasUsername,
+          }
+        : null,
+    );
   };
 
   return (
@@ -130,6 +173,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUsername,
         isLoading,
         deleteAccount,
+        changeUserPassword,
+        updateProfileData,
       }}
     >
       {children}

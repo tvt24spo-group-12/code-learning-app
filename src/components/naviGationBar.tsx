@@ -82,10 +82,23 @@ function TabBar({ state, descriptors, navigation }: any) {
   );
 }
 export default function Tabs() {
+  const { theme } = useTheme();
+  const colors = getTheme(theme);
+
   return (
     <Tab.Navigator
       tabBar={(props) => <TabBar {...props} />}
       initialRouteName="Home"
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          color: colors.text,
+          fontWeight: '600',
+        },
+      }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="CoursePage" component={CoursePage} />
