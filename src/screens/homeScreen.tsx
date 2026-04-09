@@ -19,10 +19,16 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRecentCourseActivity().then((data) => {
-      setActivities(data);
-      setLoading(false);
-    });
+    getRecentCourseActivity()
+      .then((data) => {
+        setActivities(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching activity:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (
@@ -41,14 +47,19 @@ export default function HomeScreen() {
         <View style={globalStyles.loading}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
+      ) : activities.length === 0 ? (
+        <Text style={globalStyles.bodyText}>
+          Ei viimeaikaista aktiviteettia
+        </Text>
       ) : (
         activities.map((activity) => (
           <TouchableOpacity
             key={activity.courseId}
             style={globalStyles.card}
             onPress={() => {
-              // TODO: Navigate to specific course page when route exists
-              navigation.navigate("CoursePage");
+              navigation.navigate("CoursePage", {
+                courseId: activity.courseId,
+              });
             }}
           >
             <Text style={globalStyles.subheading}>{activity.courseName}</Text>
