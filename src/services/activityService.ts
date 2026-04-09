@@ -22,8 +22,8 @@ function parseCompletedTasks(
   for (const value of Object.values(completedTasks)) {
     if (!value || !value.includes("_")) continue;
 
-    // Format: CourseName_TaskName_Attemps:N (note: typo in data is intentional)
-    const attemptsIdx = value.lastIndexOf("_Attemp");
+    // Format: CourseName_TaskName_Attemps:N
+    const attemptsIdx = value.lastIndexOf("_Attempt");
     if (attemptsIdx === -1) continue;
 
     const courseAndTask = value.substring(0, attemptsIdx);
