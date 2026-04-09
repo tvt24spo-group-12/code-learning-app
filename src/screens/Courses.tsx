@@ -7,34 +7,38 @@ import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
 import { getCourses, fetchTasks,checkifDone } from '../services/exerciseService';
 import {Check} from "lucide-react-native"
 import { useAuth } from '../context/AuthContext';
-const CoursePage = ({ navigation }: any) => {
+const CoursePage = ({ navigation, route }: any) => {
   const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
   const [loading, setLoading] = useState(true);
   const [title, setTitle] =useState<string[]>([])
-  const [userid, setUserId] = useState<string>("") 
+  const [userid, setUserId] = useState<string>("")
   const [completedTasks,setCompletedTasks] = useState<string[]>([])
   const {userProfile} = useAuth()
+  const selectedCourseId = route?.params?.courseId;
+
   useEffect(() => {
-    
+
     setUserId(userProfile?.uid || "")
-    
+
     if(userid=== "" || userid.length=== 0){
       setLoading(true)
     }else{
       setLoading(false)
-   
-    fetchExercises();
-
+      fetchExercises();
     }
-  
-   
-  }, [userid,userProfile]);
+
+  }, [userid,userProfile,selectedCourseId]);
 
   const fetchExercises = async () => {
     try {
       setLoading(true);
       const courses = await getCourses()
-      const courseIds= courses.map(course=>course.id)
+      let courseIds = courses.map(course=>course.id)
+
+      if (selectedCourseId) {
+        courseIds = courseIds.filter(id => id === selectedCourseId);
+      }
+
      setTitle(courseIds)
       const data = await fetchTasks(courseIds)
   
