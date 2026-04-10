@@ -1,7 +1,9 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { useTheme } from "../context/ThemeContext";
+import { createGlobalStyles } from "../theme/globalStyles";
+import { getTheme } from "../theme/theme";
 import { Exercise } from '../types/exercise';
 import { ChevronRight, Code, ListCheck } from 'lucide-react-native';
 import { getCourses, fetchTasks,checkifDone } from '../services/exerciseService';
@@ -15,7 +17,9 @@ const CoursePage = ({ navigation, route }: any) => {
   const [completedTasks,setCompletedTasks] = useState<string[]>([])
   const {userProfile} = useAuth()
   const selectedCourseId = route?.params?.courseId;
-
+    const { theme } = useTheme();
+    const globalStyles = createGlobalStyles(theme);
+const [selectedId, setSelectedId] = useState<string|null>(null)
   const handleBack = () => {
     if (selectedCourseId) {
       navigation.setParams({ courseId: undefined });
@@ -41,7 +45,7 @@ const CoursePage = ({ navigation, route }: any) => {
   }, [selectedCourseId]);
 
   useEffect(() => {
-
+    setSelectedId(null)
     setUserId(userProfile?.uid || "")
 
     if(userid=== "" || userid.length=== 0){
@@ -51,7 +55,7 @@ const CoursePage = ({ navigation, route }: any) => {
       fetchExercises();
     }
 
-  }, [userid,userProfile,selectedCourseId]);
+  }, [userid,userProfile,selectedCourseId,setSelectedId]);
 
   const fetchExercises = async () => {
     try {
@@ -67,7 +71,9 @@ const CoursePage = ({ navigation, route }: any) => {
       const data = await fetchTasks(courseIds)
   
     const completedtasks = await checkifDone(userid)
+     
       setCompletedTasks(completedtasks)
+
       
    
       setExercises(data)
@@ -82,25 +88,50 @@ const CoursePage = ({ navigation, route }: any) => {
   };
 
   const renderItem = ({ item }: { item: Exercise }) => (
-    <><View>
-      {title.map(s => s.toString() == item.courseId) && (
-        <Text style={styles.courseTitle}>{item.courseId}</Text>
-      )}
-    </View><TouchableOpacity
+  
+    <>
+   {selectedId === null &&( <TouchableOpacity
 
       style={styles.card}
       // Varmista, että 'ExerciseDetail' on määritelty StackNavigatorissa!
-      onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title, courseId: item.courseId })}
+      onPress={() => {
+    
+        setSelectedId(item.courseId)}}
     >
+          <Text style={styles.courseTitle}>{item.courseId}</Text>
+
+    
+        <ChevronRight size={18} color="#666" />
+
+      
+      </TouchableOpacity>)}
+      
+        {selectedId === item.courseId&&(
+          <>
+         
+          <TouchableOpacity onPress={()=>{setSelectedId(null)}}><ArrowLeft/></TouchableOpacity>
+           <Text style={styles.courseTitle}>{item.courseId}</Text>
+          
+          <TouchableOpacity
+         
+              style={styles.card}
+               onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: item.id, title: item.title, courseId: item.courseId })}
+              >
         <View style={styles.cardInfo}>
 
           <Text style={styles.cardTitle}>{item.title}</Text>
           <Text style={styles.cardSubtitle}>{item.description}</Text>
-          {completedTasks?.some(task=>task.includes(item.courseId))&& <Check color="#32aa14"></Check>}
+           {completedTasks?.map(task=>task === item.id)&&<Check color="#32aa14"></Check>}
 
         </View>
-        <ChevronRight size={18} color="#666" />
-      </TouchableOpacity></>
+     
+              </TouchableOpacity>
+                
+                
+              </>
+        )}
+      </>
+   
   );
 
   if (loading) {
@@ -113,6 +144,7 @@ const CoursePage = ({ navigation, route }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      
       <FlatList
         data={exercises}
         renderItem={renderItem}
@@ -177,6 +209,6 @@ const styles = StyleSheet.create({
   color: '#000',
   marginBottom:10,
   marginTop:10,
-},
+}
 });
 export default CoursePage;

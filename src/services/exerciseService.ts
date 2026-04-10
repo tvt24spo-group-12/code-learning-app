@@ -1,7 +1,7 @@
 import { MOCK_EXERCISES } from '../data/mockExercises';
 import { Exercise } from '../types/exercise';
 import { db } from "../../firebaseConfig";
-import { arrayUnion, collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore"; 
+import { arrayUnion, collection, doc, getDoc, getDocs, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore"; 
 import { useState } from 'react';
 import { ConciergeBellIcon, Percent } from 'lucide-react-native';
 
@@ -23,7 +23,9 @@ export const checkifDone=async(userid:string)=>{
 
   try{
   const data = await getDoc(completedTasks);
-  return data.exists() ? data.data()?.completedTasks || [] : [];
+  if(!data.exists()) return[];
+  const completedData = data.data()?.completedTasks || [];
+  return completedData.filter((task:any)=> task.courseName && task.taskName);
   }catch(error){
     console.log(error)
   }
@@ -36,9 +38,12 @@ export const setDone= async(courseId:string, exerciseId:string, attempts:number,
   try{
 
   await updateDoc(user,{
-    completedTasks: arrayUnion(`${courseId}_${exerciseId}_Attempts:${attempts}`)
-  });
-  
+completedTasks: arrayUnion({
+      courseName: courseId,
+       taskName:exerciseId,
+        attempts:attempts,
+         date: Timestamp.now(),}),
+  })
 }catch(error){
   console.error(error)
 }
