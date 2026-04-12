@@ -1,7 +1,7 @@
 import { MOCK_EXERCISES } from '../data/mockExercises';
 import { Exercise } from '../types/exercise';
 import { db } from "../../firebaseConfig";
-import { collection, doc, getDoc, getDocs, setDoc, updateDoc } from "firebase/firestore"; 
+import { arrayUnion, collection, doc, getDoc, getDocs, query, setDoc, Timestamp, updateDoc, where } from "firebase/firestore"; 
 import { useState } from 'react';
 import { ConciergeBellIcon, Percent } from 'lucide-react-native';
 
@@ -17,12 +17,36 @@ const courses: Exercise[] = querySnapshot.docs.map((doc)=>({
 return courses
 
 }
-export const setDone= async(courseId:string, exerciseId:string, attempts:number)=>{
-  const task = doc(db,"Courses",courseId,"Tasks",exerciseId)
-  await updateDoc(task,{
-    done:true,
-    attempts:attempts
+
+export const checkifDone=async(userid:string)=>{
+  const completedTasks=doc(db,"users",userid)
+
+  try{
+  const data = await getDoc(completedTasks);
+  if(!data.exists()) return[];
+  const completedData = data.data()?.completedTasks || [];
+  return completedData.filter((task:any)=> task.courseName && task.taskName);
+  }catch(error){
+    console.log(error)
+  }
+}
+
+export const setDone= async(courseId:string, exerciseId:string, attempts:number, userId:string)=>{
+ 
+ // const task = doc(db,"Courses",courseId,"Tasks",exerciseId)
+  const user = doc(db,"users",userId)
+  try{
+
+  await updateDoc(user,{
+completedTasks: arrayUnion({
+      courseName: courseId,
+       taskName:exerciseId,
+        attempts:attempts,
+         date: Timestamp.now(),}),
   })
+}catch(error){
+  console.error(error)
+}
 }
 
 export const fetchTasks= async(Courseid:string[]):Promise<Exercise[]>=>{

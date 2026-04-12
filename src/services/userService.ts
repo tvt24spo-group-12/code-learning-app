@@ -268,3 +268,121 @@ export const setDefaultPaymentMethod = async (
     throw new Error(`Failed to set default payment method: ${error.message}`);
   }
 };
+
+/**
+ * Change user's password
+ * @param user - Current Firebase user
+ * @param currentPassword - Current password for re-authentication
+ * @param newPassword - New password
+ */
+export const changePassword = async (
+  user: User,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> => {
+  if (!user.email) {
+    throw new Error("User does not have an email");
+  }
+
+  try {
+    // Re-authenticate user
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+
+    // Update password in Firebase Auth
+    const { updatePassword } = await import("firebase/auth");
+    await updatePassword(user, newPassword);
+
+  } catch (error: any) {
+    throw new Error(`Tarkista salasana ja yritä uudestaan: ${error.message}`);
+  }
+};
+
+/**
+ * Update user profile (email and/or username) in Firestore
+ * @param uid - User ID
+ * @param email - User's email
+ * @param profileData - Object with email and/or username to update
+ * @param oldUsername - Previous username (required if username is being updated)
+ */
+export const updateUserProfile = async (
+  uid: string,
+  email: string,
+  profileData: { email?: string; username?: string },
+  oldUsername: string | null = null,
+): Promise<void> => {
+  try {
+    if (profileData.username) {
+      // Handle username update with usernames collection mapping
+      await updateUsername(uid, email, oldUsername, profileData.username);
+    } else if (profileData.email) {
+      // Only update email if username isn't being changed
+      await updateDoc(doc(db, "users", uid), {
+        email: profileData.email,
+      });
+    }
+  } catch (error: any) {
+    throw new Error(`Profiilin päivittäminen epäonnistui: ${error.message}`);
+  }
+};
+
+/**
+ * Update user's username and update the usernames collection mapping
+ * @param uid - User ID
+ * @param email - User's email
+ * @param oldUsername - Previous username (to delete from usernames collection)
+ * @param newUsername - New username
+ */
+export const updateUsername = async (
+  uid: string,
+  email: string | null,
+  oldUsername: string | null,
+  newUsername: string,
+): Promise<void> => {
+  const normalizedNewUsername = newUsername.trim();
+
+  // Validate username format
+  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+  if (!usernameRegex.test(normalizedNewUsername)) {
+    throw new Error("Käyttäjätunnus voi sisältää vain kirjaimia, numeroita ja alaviivoja (3-20 merkkiä)");
+  }
+
+  if (!email) {
+    throw new Error("Sähköposti on vaadittu käyttäjätunnuksen päivittämiseen");
+  }
+
+  try {
+    const { runTransaction } = await import("firebase/firestore");
+    
+    await runTransaction(db, async (transaction) => {
+      // Check if new username is already taken
+      const newUsernameRef = doc(db, "usernames", normalizedNewUsername);
+      const newUsernameDoc = await transaction.get(newUsernameRef);
+
+      if (newUsernameDoc.exists()) {
+        throw new Error("Käyttäjätunnus on jo käytössä");
+      }
+
+      // Delete old username mapping if it exists
+      if (oldUsername) {
+        const oldUsernameRef = doc(db, "usernames", oldUsername.toLowerCase());
+        transaction.delete(oldUsernameRef);
+      }
+
+      // Create new username mapping
+      transaction.set(newUsernameRef, {
+        uid,
+        email,
+        username: normalizedNewUsername,
+      });
+
+      // Update user document
+      const userRef = doc(db, "users", uid);
+      transaction.update(userRef, {
+        username: normalizedNewUsername,
+      });
+    });
+  } catch (error: any) {
+    throw new Error(error.message || "Failed to update username");
+  }
+};
