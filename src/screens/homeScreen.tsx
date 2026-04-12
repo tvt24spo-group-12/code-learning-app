@@ -1,7 +1,7 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Text, View, ActivityIndicator, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 import { createGlobalStyles } from "../theme/globalStyles";
 import { getTheme } from "../theme/theme";
@@ -18,21 +18,26 @@ export default function HomeScreen() {
   const [activities, setActivities] = useState<CourseActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getRecentCourseActivity()
-      .then((data) => {
-       
-        setActivities(data);
-       
-      })
-      .catch((error) => {
-        
-        console.error("Error fetching activity:", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      getRecentCourseActivity()
+        .then((data) => {
+          const sorted = [...data].sort(
+            (a, b) =>
+              new Date(b.lastAccessed).getTime() -
+              new Date(a.lastAccessed).getTime(),
+          );
+          setActivities(sorted.slice(0, 3));
+        })
+        .catch((error) => {
+          console.error("Error fetching activity:", error);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }, []),
+  );
 
   return (
     <View
@@ -51,9 +56,22 @@ export default function HomeScreen() {
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : activities.length === 0 ? (
-        <Text style={globalStyles.bodyText}>
-          Ei viimeaikaista aktiviteettia
-        </Text>
+        <View>
+          <Text style={globalStyles.bodyText}>
+            Ei viimeaikaista aktiviteettia
+          </Text>
+          <TouchableOpacity
+            style={[
+              globalStyles.card,
+              { marginTop: 12, alignItems: "center", justifyContent: "center" },
+            ]}
+            onPress={() => navigation.navigate("CoursePage")}
+          >
+            <Text style={[globalStyles.subheading, { textAlign: "center" }]}>
+              Näytä kurssit
+            </Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         activities.map((activity) => (
           <TouchableOpacity
