@@ -12,6 +12,7 @@ export type UserProfile = {
   email: string;
   username: string | null;
   hasUsername: boolean;
+  createdAt?: any;
 };
 
 export type PaymentMethod = {
@@ -41,6 +42,7 @@ export const fetchUserProfile = async (
         email: data.email || "",
         username: data.username || null,
         hasUsername: !!data.username,
+        createdAt: data.createdAt || null,
       };
     }
 

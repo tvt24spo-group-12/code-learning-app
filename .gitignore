@@ -42,7 +42,12 @@ service-account.json
 # generated native folders
 /ios
 /android
+<<<<<<< HEAD
+/Course app/serviceAccountKey.json
+/Course_app/serviceAccountKey.json
+=======
 
 # backend
 /backend/node_modules
 /backend/.env*
+>>>>>>> 431ebf38ae58b05086cb2a993052b83a6591ff71

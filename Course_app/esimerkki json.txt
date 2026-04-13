@@ -1,0 +1,16 @@
+{
+  "attempts": 1,
+  "correctAnswer": "double a = 2.00;",
+  "courseid": "Courses/C++MockCourse",
+  "description": "Variables",
+  "difficulty": "easy",
+  "done": true,
+  "language": "C++",
+  "options": [
+    "int a = 2;",
+    "double a = 2.00;",
+    "string a = \"2.00\""
+  ],
+  "question": "pick the right variable that represent a number with decimals",
+  "title": "variable"
+}
