@@ -20,17 +20,12 @@ const ExerciseScreen = ({ route }: any) => {
 
   useEffect(() => {
      setUserId(userProfile?.uid || "")
-    if(isCorrect === true){
-      setDone(courseId,exerciseId,attempts, userid)
-    
-    }
+  
     const fetchExercise = async () => {
       try {
         setLoading(true);
-
-       const data = await getTask(courseId,exerciseId)
-   
-      setExercise(data);
+        const data = await getTask(courseId,exerciseId)
+        setExercise(data);
       } catch (error) {
         console.error('Error fetching exercise:', error);
       } finally {
@@ -39,19 +34,28 @@ const ExerciseScreen = ({ route }: any) => {
     };
 
     fetchExercise();
-  }, [exerciseId, isCorrect]);
+  }, [exerciseId]);
 
   const checkAnswer = (option: string) => {
+  
+     
     setSelectedOption(option);
     const correct = option === exercise?.correctAnswer;
+    
     setIsCorrect(correct);
     
     if (correct) {
+      
       Alert.alert('Good!', 'Excellent work!', [{ text: 'Excellent' }]);
-      setAttempts(+1)
+      setDone(courseId, exerciseId, attempts+1, userid)
     } else {
+         setAttempts(prev=>prev + 1)
       Alert.alert('Ouch!', 'Try again!', [{ text: 'OK' }]);
-      setAttempts(+1)
+      setTimeout(()=>{
+  setSelectedOption(null)
+    setIsCorrect(null)
+      },1000)
+  
     }
   };
 
@@ -86,7 +90,7 @@ const ExerciseScreen = ({ route }: any) => {
                 selectedOption === option && isCorrect === false && styles.wrongOption,
               ]}
               onPress={() => !selectedOption && checkAnswer(option)}
-              disabled={selectedOption !== null}
+             disabled={selectedOption !== null}
             >
               <Text style={[styles.optionText, selectedOption === option && styles.selectedOptionText]}>
                 {option}
