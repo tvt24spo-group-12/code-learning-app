@@ -15,6 +15,7 @@ import Login from "./src/screens/login";
 import Register from "./src/screens/register";
 import UsernameSetup from "./src/screens/usernameSetup";
 import CoursePage from "./src/screens/Courses";
+import CodingScreen from "./src/screens/CodingScreen";
 
 const Stack = createNativeStackNavigator();
 type AuthScreen = "Login" | "Register";
@@ -63,6 +64,10 @@ function MainNavigator() {
               title: route.params?.title || 'Exercise Detail',
               headerBackTitle: 'Back', 
             })} 
+          />
+          <Stack.Screen 
+            name={"CodingScreen"}
+            component={CodingScreen}
           />
         </Stack.Navigator>
       )}

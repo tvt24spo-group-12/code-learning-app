@@ -148,7 +148,14 @@ const CoursePage = ({ navigation, route }: any) => {
             <TouchableOpacity
               key={exercise.id}
               style={[globalStyles.card, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16 }]}
-              onPress={() => navigation.navigate('ExerciseDetail', { exerciseId: exercise.id, title: exercise.title, courseId: exercise.courseId })}
+              onPress={() => {
+                if(exercise.type === "code-challenge"){
+                  navigation.navigate('CodingScreen', {exercise: exercise})
+                }
+                else{
+                  navigation.navigate('ExerciseDetail', { exerciseId: exercise.id, title: exercise.title, courseId: exercise.courseId })
+                }
+              }}
             >
               <View style={styles.cardInfo}>
                 <Text style={styles.cardTitle}>{exercise.title}</Text>
