@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import {countAverage, successRate} from '../services/mathService'
 import {
   View,
   Text,
@@ -33,7 +34,8 @@ sivulla näytetään käyttäjän tiedot, aktiivisuus,groupit ja suositellut kur
  */
 export default function AccountPage() {
   const navigation = useNavigation<any>();
-  
+   const [successrate,setSuccessRate] = useState<number>(0)
+   const[avgAttempts, setAvgAttempts] = useState<number>(0)
   // Aktiivinen välilehti (Yleiskatsaus oletuksena)
  const [activeTab, setActiveTab] = useState('Yleiskatsaus');
 
@@ -57,9 +59,19 @@ export default function AccountPage() {
   //väliaikainen data kunnes saadaan oikea data firebasesta
   const progress = 50;
   const latestCourse = "Python Basics";
-
+const totalAttempts = async()=>{
+   const attempts = await countAverage(String(userProfile?.uid))
+    const success = await successRate(String(userProfile?.uid))
+  setAvgAttempts(Number(attempts))
+    setSuccessRate(Number(success))
+   console.log('on average it takes you ',attempts, ' attempts to complete a task and your successrate is ', `${success}%`)
+}
   //useEffect haetaa käyttäjän datat firebasesta.
   React.useEffect(() => {
+    
+   totalAttempts()
+   
+    console.log()
     if (userProfile) {
       let displayDate = "Liittymis aika tuntematon";
 
@@ -189,9 +201,12 @@ export default function AccountPage() {
 
 {/* Tilastot sivu*/}
         {activeTab === 'Tilastot' && (
+       
           <View style={styles.section}>
             <Text style={[{color: colors.text}, styles.sectionTitle]}>Tilastot</Text>
-            <Text style={{color: colors.text}}>Tilastot-osio on vielä kehitteillä.</Text>
+            <Text style={{color: colors.text}}>it takes you on average {avgAttempts} attempts to complete a task</Text>
+            <Text style={{color: colors.text}}>your success rate is {successrate}%</Text>
+
           </View>
         )}
 {/* Groups sivu*/}
