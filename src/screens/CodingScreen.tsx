@@ -11,6 +11,7 @@ const CodingScreen = ({ route }: any) => {
       startCode={exercise.starterCode}
     problemQuestion={exercise.title}
     problemDescription={exercise.description}
+    courseId={exercise.courseId}
     />
   );
 };

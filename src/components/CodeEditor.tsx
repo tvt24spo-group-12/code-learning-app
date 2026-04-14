@@ -4,6 +4,8 @@ import WebView, { WebViewMessageEvent } from "react-native-webview";
 import { judgeCode, runCode } from "../services/codeService";
 import ResultsModal from "./ResultsModal";
 import { JudgingResult } from "../types/codingProblem";
+import { setDone } from "../services/exerciseService";
+import { useAuth } from "../context/AuthContext";
 
 interface CodeEditorProps {
   language: string;
@@ -11,6 +13,8 @@ interface CodeEditorProps {
   problemId: string;
   problemQuestion?: string;
   problemDescription?: string;
+  courseId: string;
+
 }
 
 const editorSettings = {
@@ -26,11 +30,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   problemId,
   problemQuestion,
   problemDescription,
+  courseId,
+
 }) => {
 
     const [results, setResults] = React.useState<null | JudgingResult[]>(null);
     const [modalVisible, setModalVisible] = React.useState(false);
-
+    const {userProfile} = useAuth()
+    const userId = userProfile?.uid || "null"
+    const [attempts, setAttempts] = React.useState<number>(0);
+    
   const webViewRef = useRef<WebView>(null);
 
   const onMessage = async (event: WebViewMessageEvent) => {
@@ -42,6 +51,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         const message = result.results
         setResults(message);
         setModalVisible(true);
+        if(result.results.length === result.passed){
+            setAttempts(attempts + 1);
+            setDone(courseId, problemId, attempts, userId)
+        }
+        else{
+            setAttempts(attempts + 1);
+        }
       }
     } catch (err) {
       console.error("Failed to parse message from WebView:", err);
