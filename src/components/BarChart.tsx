@@ -18,10 +18,6 @@ export default function BarChart({ labels, values, theme }: Props) {
 
   return (
     <View>
-      <Text style={[styles.maxLabel, { color: colors.textSecondary }]}>
-        Max {max}
-      </Text>
-
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator
@@ -31,15 +27,23 @@ export default function BarChart({ labels, values, theme }: Props) {
         <View style={styles.plot}>
           {values.map((v, i) => (
             <View key={i} style={styles.column}>
-              <View
-                style={{
-                  width: BAR_WIDTH,
-                  height: (v / max) * CHART_HEIGHT,
-                  backgroundColor: colors.primary,
-                  borderTopLeftRadius: 4,
-                  borderTopRightRadius: 4,
-                }}
-              />
+              <View style={styles.barArea}>
+                {v > 0 && (
+                  <View
+                    style={{
+                      width: BAR_WIDTH,
+                      height: (v / max) * CHART_HEIGHT,
+                      backgroundColor: colors.primary,
+                      borderTopLeftRadius: 4,
+                      borderTopRightRadius: 4,
+                      alignItems: 'center',
+                      paddingTop: 2,
+                    }}
+                  >
+                    <Text style={styles.barValue}>{v}</Text>
+                  </View>
+                )}
+              </View>
               <Text style={[styles.label, { color: colors.textSecondary }]}>
                 {labels[i]}
               </Text>
@@ -52,19 +56,23 @@ export default function BarChart({ labels, values, theme }: Props) {
 }
 
 const styles = StyleSheet.create({
-  maxLabel: {
-    fontSize: 11,
-    marginBottom: 4,
+  barValue: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#fff',
   },
   plot: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    height: CHART_HEIGHT,
     paddingRight: 12,
   },
   column: {
     alignItems: "center",
     marginRight: BAR_GAP,
+  },
+  barArea: {
+    height: CHART_HEIGHT,
+    width: BAR_WIDTH,
+    justifyContent: 'flex-end',
   },
   label: {
     fontSize: 10,
