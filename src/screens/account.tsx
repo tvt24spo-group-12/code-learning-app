@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import {countAverage, successRate} from '../services/mathService'
+import {
+  fetchCompletedTasks,
+  computeUserStats,
+  tasksByDayOfMonth,
+  tasksByMonth,
+  tasksByYear,
+  CompletedTask,
+  UserStats,
+} from '../services/mathService';
+import BarChart from '../components/BarChart';
 import {
   View,
   Text,
@@ -27,13 +38,39 @@ import {
 } from 'lucide-react-native';
 const SPACING = { xl: 20, lg: 16, md: 12 };
 
+type ChartMode = 'day' | 'month' | 'year';
+
+const CHART_MODES: { key: ChartMode; label: string }[] = [
+  { key: 'day', label: 'Päivittäinen' },
+  { key: 'month', label: 'Kuukausittainen' },
+  { key: 'year', label: 'Vuosittainen' },
+];
+
+const trendLabel = (slope: number) =>
+  slope < -0.01 ? '↓ Paranee' : slope > 0.01 ? '↑ Nousee' : '→ Vakaa';
+
+const buildTiles = (s: UserStats | null) => [
+  { label: 'Suoritetut tehtävät', value: String(s?.totalTasks ?? 0) },
+  { label: 'Aktiiviset päivät', value: String(s?.activeDays ?? 0) },
+  { label: 'Nykyinen putki', value: `${s?.currentStreak ?? 0} pv` },
+  { label: 'Pisin putki', value: `${s?.longestStreak ?? 0} pv` },
+  { label: 'Mediaani yrityksiä', value: (s?.medianAttempts ?? 0).toFixed(1) },
+  { label: 'Keskihajonta', value: (s?.stdDevAttempts ?? 0).toFixed(2) },
+  { label: 'Tehtäviä / viikko', value: (s?.weeklyAverage ?? 0).toFixed(1) },
+  { label: 'Oppimistrendi', value: s ? trendLabel(s.improvementSlope) : '–' },
+];
+
 /**
 Account page
 sivulla näytetään käyttäjän tiedot, aktiivisuus,groupit ja suositellut kurssit .
  */
 export default function AccountPage() {
   const navigation = useNavigation<any>();
-  
+   const [successrate,setSuccessRate] = useState<number>(0)
+   const[avgAttempts, setAvgAttempts] = useState<number>(0)
+   const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
+   const [userStats, setUserStats] = useState<UserStats | null>(null);
+   const [chartMode, setChartMode] = useState<ChartMode>('month');
   // Aktiivinen välilehti (Yleiskatsaus oletuksena)
  const [activeTab, setActiveTab] = useState('Yleiskatsaus');
 
@@ -57,9 +94,19 @@ export default function AccountPage() {
   //väliaikainen data kunnes saadaan oikea data firebasesta
   const progress = 50;
   const latestCourse = "Python Basics";
-
+const totalAttempts = async()=>{
+   const attempts = await countAverage(String(userProfile?.uid))
+    const success = await successRate(String(userProfile?.uid))
+  setAvgAttempts(Number(attempts))
+    setSuccessRate(Number(success))
+   console.log('on average it takes you ',attempts, ' attempts to complete a task and your successrate is ', `${success}%`)
+}
   //useEffect haetaa käyttäjän datat firebasesta.
   React.useEffect(() => {
+    
+   totalAttempts()
+   
+    console.log()
     if (userProfile) {
       let displayDate = "Liittymis aika tuntematon";
 
@@ -76,8 +123,23 @@ export default function AccountPage() {
     }
   }, [userProfile]);
 
+  React.useEffect(() => {
+    const loadStats = async () => {
+      if (!userProfile?.uid) return;
+      const tasks = await fetchCompletedTasks(String(userProfile.uid));
+      setCompletedTasks(tasks);
+      setUserStats(computeUserStats(tasks));
+    };
+    loadStats();
+  }, [userProfile]);
 
+  const chartSeries = useMemo(() => {
+    if (chartMode === 'day') return tasksByDayOfMonth(completedTasks);
+    if (chartMode === 'month') return tasksByMonth(completedTasks);
+    return tasksByYear(completedTasks);
+  }, [chartMode, completedTasks]);
 
+  const tiles = buildTiles(userStats);
 
   return (
     <View style={globalStyles.screenContainer}>
@@ -189,9 +251,59 @@ export default function AccountPage() {
 
 {/* Tilastot sivu*/}
         {activeTab === 'Tilastot' && (
+       
           <View style={styles.section}>
             <Text style={[{color: colors.text}, styles.sectionTitle]}>Tilastot</Text>
-            <Text style={{color: colors.text}}>Tilastot-osio on vielä kehitteillä.</Text>
+            <Text style={{color: colors.text}}>it takes you on average {avgAttempts} attempts to complete a task</Text>
+            <Text style={{color: colors.text}}>your success rate is {successrate}%</Text>
+
+            <ScrollView
+              style={styles.statsScroll}
+              contentContainerStyle={styles.statsScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.chartToggleRow}>
+                {CHART_MODES.map(({ key, label }) => (
+                  <TouchableOpacity
+                    key={key}
+                    onPress={() => setChartMode(key)}
+                    style={[
+                      styles.chartToggleBtn,
+                      {
+                        backgroundColor: chartMode === key ? colors.primary : colors.surface,
+                        borderColor: chartMode === key ? colors.primary : colors.border,
+                      },
+                    ]}
+                  >
+                    <Text style={{ color: chartMode === key ? '#fff' : colors.text, fontWeight: '600' }}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <BarChart
+                labels={chartSeries.labels}
+                values={chartSeries.values}
+                theme={theme}
+              />
+
+              <Text style={[styles.subSectionTitle, { color: colors.text }]}>
+                Edistymismittarit
+              </Text>
+
+              <View style={styles.statsGrid}>
+                {tiles.map(({ label, value }) => (
+                  <View
+                    key={label}
+                    style={[styles.statTile, { backgroundColor: colors.background, borderColor: colors.border }]}
+                  >
+                    <Text style={[styles.statTileLabel, { color: colors.textSecondary }]}>{label}</Text>
+                    <Text style={[styles.statTileValue, { color: colors.text }]}>{value}</Text>
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
           </View>
         )}
 {/* Groups sivu*/}
@@ -384,5 +496,51 @@ const styles = StyleSheet.create({
   
   scrollView: {
     flex: 1,
+  },
+  statsScroll: {
+    marginTop: SPACING.md,
+    maxHeight: Dimensions.get('window').height - 560,
+  },
+  statsScrollContent: {
+    paddingBottom: 100,
+  },
+  chartToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  chartToggleBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  subSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.md,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statTile: {
+    width: '48%',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  statTileLabel: {
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  statTileValue: {
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

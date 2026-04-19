@@ -29,14 +29,9 @@ const CoursePage = ({ navigation, route }: any) => {
   const globalStyles = createGlobalStyles(theme);
   const colors = getTheme(theme);
   const styles = createStyles(colors);
-  const [selectedId, setSelectedId] = useState<string|null>(null)
 
   const handleBack = () => {
-    if (selectedCourseId) {
-      navigation.setParams({ courseId: undefined });
-    } else {
-      navigation.goBack();
-    }
+    navigation.setParams({ courseId: undefined });
   };
 
   useLayoutEffect(() => {
@@ -56,7 +51,6 @@ const CoursePage = ({ navigation, route }: any) => {
   }, [selectedCourseId]);
 
   useEffect(() => {
-    setSelectedId(null)
     setUserId(userProfile?.uid || "")
 
     if(userid=== "" || userid.length=== 0){
@@ -123,25 +117,22 @@ const CoursePage = ({ navigation, route }: any) => {
 
   const renderItem = ({ item }: { item: { courseId: string; exercises: Exercise[] } }) => (
     <View>
-      {selectedId === null && (
+      {!selectedCourseId && (
         <TouchableOpacity
           style={[globalStyles.card, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, justifyContent: 'space-between' }]}
           onPress={() => {
-            setSelectedId(item.courseId)
+            navigation.setParams({ courseId: item.courseId })
           }}
         >
           <Text style={styles.courseTitle}>{item.courseId}</Text>
           <ChevronRight size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       )}
-      
-      {selectedId === item.courseId && (
+
+      {selectedCourseId === item.courseId && (
         <>
-          <TouchableOpacity onPress={() => { setSelectedId(null) }} style={{ marginLeft: 16, marginVertical: 10 }}>
-            <ArrowLeft size={24} color={colors.text} />
-          </TouchableOpacity>
           <Text style={styles.courseTitle}>{item.courseId}</Text>
-          
+
           {item.exercises.map((exercise) => (
             <TouchableOpacity
               key={exercise.id}

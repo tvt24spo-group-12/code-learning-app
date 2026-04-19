@@ -36,7 +36,12 @@ export const setDone= async(courseId:string, exerciseId:string, attempts:number,
  // const task = doc(db,"Courses",courseId,"Tasks",exerciseId)
   const user = doc(db,"users",userId)
   try{
-
+    const isDone= await checkifDone(userId)
+    const done = isDone.some((task:any) => task.courseName === courseId && task.taskName === exerciseId)
+    if(done){
+      console.log("already done")
+      return
+    }
   await updateDoc(user,{
 completedTasks: arrayUnion({
       courseName: courseId,
