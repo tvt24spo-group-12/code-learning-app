@@ -1,6 +1,6 @@
 import { ArrowLeft, Check, ChevronRight, ListX, ListCheck } from 'lucide-react-native';
 import React, { useEffect, useLayoutEffect, useState, useCallback } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +29,7 @@ const CoursePage = ({ navigation, route }: any) => {
   const globalStyles = createGlobalStyles(theme);
   const colors = getTheme(theme);
   const styles = createStyles(colors);
+  const [coursesData, setCoursesData] = useState<any[]>([]);
 
   const handleBack = () => {
     navigation.setParams({ courseId: undefined });
@@ -84,6 +85,7 @@ const CoursePage = ({ navigation, route }: any) => {
     try {
       setLoading(true);
       const courses = await getCourses()
+      setCoursesData(courses); 
       let courseIds = courses.map(course=>course.id)
 
       if (selectedCourseId) {
@@ -96,7 +98,7 @@ const CoursePage = ({ navigation, route }: any) => {
     const completedtasks = await checkifDone(userid)
      
       setCompletedTasks(completedtasks)
-      setExercises(data)
+      setExercises(data || [])
     
     } catch (error) {
       console.error('Error fetching:', error);
@@ -115,19 +117,28 @@ const CoursePage = ({ navigation, route }: any) => {
     return acc;
   }, [] as Array<{ courseId: string; exercises: Exercise[] }>);
 
-  const renderItem = ({ item }: { item: { courseId: string; exercises: Exercise[] } }) => (
-    <View>
-      {!selectedCourseId && (
-        <TouchableOpacity
-          style={[globalStyles.premiumCard, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, justifyContent: 'space-between' }]}
-          onPress={() => {
-            navigation.setParams({ courseId: item.courseId })
-          }}
-        >
-          <Text style={styles.courseTitle}>{item.courseId}</Text>
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-      )}
+  const renderItem = ({ item }: { item: { courseId: string; exercises: Exercise[] } }) => {
+    const courseInfo = coursesData.find(c => c.id === item.courseId);
+    const logoUrl = courseInfo?.logoUrl;
+
+    return (
+      <View>
+        {!selectedCourseId && (
+          <TouchableOpacity
+            style={[globalStyles.card, { flexDirection: 'row', alignItems: 'center' }]}
+            onPress={() => {
+              navigation.setParams({ courseId: item.courseId })
+            }}
+          >
+            {logoUrl && (
+              <Image source={{ uri: logoUrl }} style={{ width: 40, height: 40, marginRight: 12, borderRadius: 8 }} />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.courseTitle}>{item.courseId}</Text>
+            </View>
+            <ChevronRight size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
 
       {selectedCourseId === item.courseId && (
         <>
@@ -154,6 +165,7 @@ const CoursePage = ({ navigation, route }: any) => {
       )}
     </View>
   );
+};
 
   if (loading) {
     return (
