@@ -1,6 +1,12 @@
 import React, { useMemo, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../firebaseConfig';
+import { updateProfilePictureURL } from '../services/userService';
+import { fetchTasks } from '../services/exerciseService';
+import { getRecentCourseActivity, CourseActivity } from "../services/activityService";
 import { useNavigation } from '@react-navigation/native';
-import {countAverage, successRate} from '../services/mathService'
+import { countAverage, successRate } from '../services/mathService'
 import {
   fetchCompletedTasks,
   computeUserStats,
@@ -27,14 +33,11 @@ import { createGlobalStyles } from '../theme/globalStyles';
 import { getTheme } from '../theme/theme';
 import { useAuth } from '../context/AuthContext';
 import {
-  Settings,
-  Activity,
   BarChart3,
   Rocket,
   Code,
-  Smartphone,
-  ChevronRight,
   Group,
+  Trophy,
 } from 'lucide-react-native';
 const SPACING = { xl: 20, lg: 16, md: 12 };
 
@@ -66,19 +69,20 @@ sivulla näytetään käyttäjän tiedot, aktiivisuus,groupit ja suositellut kur
  */
 export default function AccountPage() {
   const navigation = useNavigation<any>();
-   const [successrate,setSuccessRate] = useState<number>(0)
-   const[avgAttempts, setAvgAttempts] = useState<number>(0)
-   const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
-   const [userStats, setUserStats] = useState<UserStats | null>(null);
-   const [chartMode, setChartMode] = useState<ChartMode>('month');
+  const [successrate, setSuccessRate] = useState<number>(0)
+  const [avgAttempts, setAvgAttempts] = useState<number>(0)
+  const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [latestActivityData, setLatestActivityData] = useState<CourseActivity | null>(null);
+  const [chartMode, setChartMode] = useState<ChartMode>('month');
   // Aktiivinen välilehti (Yleiskatsaus oletuksena)
- const [activeTab, setActiveTab] = useState('Yleiskatsaus');
+  const [activeTab, setActiveTab] = useState('Yleiskatsaus');
 
   // Välilehtien konfiguraatio
   const tabs = [
     { name: 'Yleiskatsaus', icon: Code },
     { name: 'Tilastot', icon: BarChart3 },
-    { name: 'Groups', icon: Group },
+    { name: 'Ryhmät', icon: Group },
   ];
   const { theme } = useTheme();
   const globalStyles = createGlobalStyles(theme);
@@ -91,21 +95,23 @@ export default function AccountPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { userProfile } = useAuth();
 
-  //väliaikainen data kunnes saadaan oikea data firebasesta
-  const progress = 50;
-  const latestCourse = "Python Basics";
-const totalAttempts = async()=>{
-   const attempts = await countAverage(String(userProfile?.uid))
+
+  const latestCourse = latestActivityData?.courseName || "Ei aktiviteettia";
+  const progress = latestActivityData ? Math.round((latestActivityData.completedExercises / latestActivityData.totalExercises) * 100) : 0;
+  const [latestCompletedCourse, setLatestCompletedCourse] = useState<CourseActivity | null>(null);
+
+  const totalAttempts = async () => {
+    const attempts = await countAverage(String(userProfile?.uid))
     const success = await successRate(String(userProfile?.uid))
-  setAvgAttempts(Number(attempts))
+    setAvgAttempts(Number(attempts))
     setSuccessRate(Number(success))
-   console.log('on average it takes you ',attempts, ' attempts to complete a task and your successrate is ', `${success}%`)
-}
+    console.log('on average it takes you ', attempts, ' attempts to complete a task and your successrate is ', `${success}%`)
+  }
   //useEffect haetaa käyttäjän datat firebasesta.
   React.useEffect(() => {
-    
-   totalAttempts()
-   
+
+    totalAttempts()
+
     console.log()
     if (userProfile) {
       let displayDate = "Liittymis aika tuntematon";
@@ -133,13 +139,78 @@ const totalAttempts = async()=>{
     loadStats();
   }, [userProfile]);
 
+  React.useEffect(() => {
+    const loadActivity = async () => {
+      const activities = await getRecentCourseActivity();
+      if (activities.length > 0) {
+        // Uusin aktiivinen (kuten nyt)
+        const sorted = [...activities].sort((a, b) =>
+          new Date(b.lastAccessed).getTime() - new Date(a.lastAccessed).getTime()
+        );
+        setLatestActivityData(sorted[0]);
+        // ETSITÄÄN VALMISTUNUT: Suodatetaan kurssit, joissa on 100% valmista
+        const completed = sorted.filter(a => a.completedExercises === a.totalExercises);
+        if (completed.length > 0) {
+          setLatestCompletedCourse(completed[0]);
+        }
+      }
+    };
+    loadActivity();
+  }, [completedTasks]);
+
   const chartSeries = useMemo(() => {
     if (chartMode === 'day') return tasksByDayOfMonth(completedTasks);
     if (chartMode === 'month') return tasksByMonth(completedTasks);
     return tasksByYear(completedTasks);
   }, [chartMode, completedTasks]);
 
+
+  //profiilikuvan funktio
   const tiles = buildTiles(userStats);
+  const pickImage = async () => {
+    // Pyydetään lupa galleriaan
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      alert('Tarvitsemme oikeudet galleriaan, jotta voit vaihtaa kuvan.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5, // pienempi reso niin lataa nopiaa
+    });
+    if (!result.canceled && userProfile) {
+      setIsLoading(true);
+      try {
+        const uri = result.assets[0].uri;
+
+        // Muunnetaan kuva blobiks nii pelittää firebases
+        const response = await fetch(uri);
+        const blob = await response.blob();
+
+        // Refataan firebasee
+        const storageRef = ref(storage, `profiles/${userProfile.uid}`);
+
+        // Ladataan kuva
+        await uploadBytes(storageRef, blob);
+
+        // Haetaan valmis URL-linkki
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // Tallennetaan linkki Firestoreen
+        await updateProfilePictureURL(userProfile.uid, downloadURL);
+
+        alert('Profiilikuva päivitetty!');
+      } catch (error) {
+        console.error(error);
+        alert('Kuvan päivitys epäonnistui.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   return (
     <View style={globalStyles.screenContainer}>
@@ -152,171 +223,212 @@ const totalAttempts = async()=>{
         />
         <View style={styles.headerOverlay}>
           <Text style={styles.pageTitle}>Minun Profiili</Text>
-
-          {/* Käyttäjän tiedot (Kuva, Nimi, Liittymisaika) */}
           <View style={styles.profileInfoContainer}>
-            {/* Profiilikuva kuva napattu suoraa netistä tähän voidaan laittaa vaikka firebasen ne kuva hommelit */}
-            <View style={styles.avatarWrapper}>
+            <TouchableOpacity onPress={pickImage} disabled={isLoading}>
               <View style={styles.avatarBorder}>
                 <Image
-                  source={{ uri: 'https://i.pinimg.com/170x/f1/59/70/f1597088385c013a6b3121042750ed3d.jpg' }}
+                  source={{
+                    uri: userProfile?.profilePicture || 'https://via.placeholder.com/150'
+                  }}
                   style={styles.avatar}
                 />
+                {isLoading && (
+                  <View style={{ position: 'absolute', backgroundColor: 'rgba(0,0,0,0.5)', width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ color: 'white' }}>Ladataan...</Text>
+                  </View>
+                )}
               </View>
-            </View>
-
-            <Text
-              style={styles.userName}>
-            {formData.username}
+            </TouchableOpacity>
+            <Text style={styles.userName}>
+              {formData.username}
             </Text>
-
-            <Text
-              style={styles.memberSince}>
+            <Text style={styles.memberSince}>
               {formData.joinDate}
             </Text>
-
           </View>
         </View>
       </View>
 
-{/* "Välilehtivalikko"*/}
-        <View style={styles.tabBar}>
-          {tabs.map((tab) => (
-            <TouchableOpacity 
-            key={tab.name} 
+      {/* "Välilehtivalikko"*/}
+      <View style={styles.tabBar}>
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab.name}
             style={styles.tabItem}
-           onPress={() => setActiveTab(tab.name)}
-            >
-              <tab.icon 
-              size={22} 
+            onPress={() => setActiveTab(tab.name)}
+          >
+            <tab.icon
+              size={22}
               color={activeTab === tab.name ? colors.primary : colors.textSecondary} />
-
-              <Text style={[
-                styles.tabText, 
-               { color: activeTab === tab.name ? colors.primary : colors.textSecondary },
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === tab.name ? colors.primary : colors.textSecondary },
               activeTab === tab.name && styles.activeTabText
-              ]}>
+            ]}>
               {tab.name}
-             </Text>
-              {activeTab === tab.name && (
-                <View style={[styles.activeIndicator, { width: 100, backgroundColor: colors.primary }]} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
+            </Text>
+            {activeTab === tab.name && (
+              <View style={[styles.activeIndicator, { width: 100, backgroundColor: colors.primary }]} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
 
-{/* Yleiskatsaus sivu */}
-         <View style={[
-          {backgroundColor: colors.surface},
-          styles.activityBackground]}>
-            {activeTab === 'Yleiskatsaus' && (
-            <View style={styles.section}>
-            <Text style={[{color: colors.text}, styles.sectionTitle]}>Viimeisin aktiviteetti</Text>
+      {/* Yleiskatsaus sivu */}
+      {activeTab === 'Yleiskatsaus' && (
+        <View style={styles.section}>
+          <Text style={[{ color: colors.text }, styles.sectionTitle]}>Viimeisin aktiviteetti</Text>
 
-          
-        <View style={[
-          {backgroundColor: colors.background},
-          styles.activityCard]}>
-  {/* VASEN PUOLI */}
-          <View style={styles.activityContent}>
-            <Text style={[{color: colors.text}, styles.courseHeader]}>
-              Nykyinen kurssi:
+          <TouchableOpacity
+            style={[
+              { backgroundColor: colors.background },
+              styles.activityCard
+            ]}
+            onPress={() => {
+              if (latestActivityData?.courseId) {
+                navigation.navigate("ExerciseScreen", {
+                  courseId: latestActivityData.courseId,
+                  exerciseId: latestActivityData.courseId
+                });
+              }
+            }}
+          >
+            {/* VASEN PUOLI */}
+            <View style={styles.activityContent}>
+              <Text style={[{ color: colors.text }, styles.courseHeader]}>
+                Nykyinen kurssi:
+              </Text>
+              <Text style={[{ color: colors.text }, styles.courseTitle]}>
+                {latestCourse}
               </Text>
 
-            <Text style={[{color: colors.text},styles.courseTitle]}>
-              {latestCourse}
-              </Text>
-            
-            <View style={styles.progressContainer}>
-              <Text style={[{color: colors.text}, styles.progressText]}>
-                Edistyminen: {progress}%
+              <View style={styles.progressContainer}>
+                <Text style={[{ color: colors.text }, styles.progressText]}>
+                  Edistyminen: {progress}%
                 </Text>
-              <View style={[styles.progressBarBg, { backgroundColor: colors.border }]}>
-              <View 
-              style={[
-                styles.progressBarFill,
-                { width: `${progress}%`, backgroundColor: colors.primary } 
-              ]} 
-            />
+                <View style={[styles.progressBarBg, { backgroundColor: colors.border }]}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      { width: `${progress}%`, backgroundColor: colors.primary }
+                    ]}
+                  />
+                </View>
               </View>
             </View>
-          </View>
-  {/* OIKEA PUOLI */}
-          <View style={styles.rocketIconContainer}>
-            <Rocket size={48} color={colors.primary} />
-          </View>
-         </View>
-     {/* tähän tulee vielä jatkoa esim suositut kurssit yms */}
-         </View>)}
+            {/* OIKEA PUOLI */}
+            <View style={styles.rocketIconContainer}>
+              <Rocket size={48} color={colors.primary} />
+            </View>
+          </TouchableOpacity>
 
-{/* Tilastot sivu*/}
-        {activeTab === 'Tilastot' && (
-       
-          <View style={styles.section}>
-            <Text style={[{color: colors.text}, styles.sectionTitle]}>Tilastot</Text>
-            <Text style={{color: colors.text}}>it takes you on average {avgAttempts} attempts to complete a task</Text>
-            <Text style={{color: colors.text}}>your success rate is {successrate}%</Text>
-
-            <ScrollView
-              style={styles.statsScroll}
-              contentContainerStyle={styles.statsScrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.chartToggleRow}>
-                {CHART_MODES.map(({ key, label }) => (
-                  <TouchableOpacity
-                    key={key}
-                    onPress={() => setChartMode(key)}
-                    style={[
-                      styles.chartToggleBtn,
-                      {
-                        backgroundColor: chartMode === key ? colors.primary : colors.surface,
-                        borderColor: chartMode === key ? colors.primary : colors.border,
-                      },
-                    ]}
-                  >
-                    <Text style={{ color: chartMode === key ? '#fff' : colors.text, fontWeight: '600' }}>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+         {/* VIIMEISIN SUORITETTU KURSSI */}
+          {latestCompletedCourse ? (
+            <View style={[styles.activityCard, { backgroundColor: colors.background, marginTop: 15 }]}>
+              <View style={styles.activityContent}>
+                <Text style={[{ color: colors.textSecondary }, styles.courseHeader]}>
+                  Viimeisin suoritettu kurssi:
+                </Text>
+                <Text style={[{ color: colors.success || colors.primary }, styles.courseTitle]}>
+                  {latestCompletedCourse.courseName}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                  <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                    Suoritettu: {new Date(latestCompletedCourse.lastAccessed).toLocaleDateString()}
+                  </Text>
+                </View>
               </View>
-
-              <BarChart
-                labels={chartSeries.labels}
-                values={chartSeries.values}
-                theme={theme}
-              />
-
-              <Text style={[styles.subSectionTitle, { color: colors.text }]}>
-                Edistymismittarit
-              </Text>
-
-              <View style={styles.statsGrid}>
-                {tiles.map(({ label, value }) => (
-                  <View
-                    key={label}
-                    style={[styles.statTile, { backgroundColor: colors.background, borderColor: colors.border }]}
-                  >
-                    <Text style={[styles.statTileLabel, { color: colors.textSecondary }]}>{label}</Text>
-                    <Text style={[styles.statTileValue, { color: colors.text }]}>{value}</Text>
-                  </View>
-                ))}
+              <View style={styles.rocketIconContainer}>
+                <Trophy size={48} color={'#FFD700'} />
               </View>
-            </ScrollView>
-          </View>
-        )}
-{/* Groups sivu*/}
-        {activeTab === 'Groups' && (
-          <View style={styles.section}>
-            <Text style={[{color: colors.text}, styles.sectionTitle]}>Groups</Text>
-            <Text style={{color: colors.text}}>Groups-osio on vielä kehitteillä.</Text>
-          </View>
-        )} 
+            </View>
+          ) : (
+            /* Fallback jos ei ole suoritettuja kursseja */
+            <View style={[styles.activityCard, { backgroundColor: colors.background, marginTop: 15, opacity: 0.5 }]}>
+              <View style={styles.activityContent}>
+                <Text style={[{ color: colors.textSecondary }, styles.courseHeader]}>
+                  Viimeisin suoritettu kurssi:
+                </Text>
+                <Text style={[{ color: colors.textSecondary }, styles.courseTitle]}>
+                  Ei vielä suoritettuja kursseja
+                </Text>
+              </View>
+              <View style={styles.rocketIconContainer}>
+                <Trophy size={48} color={colors.textSecondary} />
+              </View>
+            </View>
+          )}
+        </View>
+      )}
 
-     </View> 
-      </View>    
-     
+      {/* Tilastot sivu*/}
+      {activeTab === 'Tilastot' && (
+
+        <View style={styles.section}>
+          <Text style={[{ color: colors.text }, styles.sectionTitle]}>Tilastot</Text>
+          <Text style={{ color: colors.text }}>it takes you on average {avgAttempts} attempts to complete a task</Text>
+          <Text style={{ color: colors.text }}>your success rate is {Math.round(successrate)}%</Text>
+
+          <ScrollView
+            style={styles.statsScroll}
+            contentContainerStyle={styles.statsScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.chartToggleRow}>
+              {CHART_MODES.map(({ key, label }) => (
+                <TouchableOpacity
+                  key={key}
+                  onPress={() => setChartMode(key)}
+                  style={[
+                    styles.chartToggleBtn,
+                    {
+                      backgroundColor: chartMode === key ? colors.primary : colors.surface,
+                      borderColor: chartMode === key ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <Text style={{ color: chartMode === key ? '#fff' : colors.text, fontWeight: '600' }}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <BarChart
+              labels={chartSeries.labels}
+              values={chartSeries.values}
+              theme={theme}
+            />
+
+            <Text style={[styles.subSectionTitle, { color: colors.text }]}>
+              Edistymismittarit
+            </Text>
+
+            <View style={styles.statsGrid}>
+              {tiles.map(({ label, value }) => (
+                <View
+                  key={label}
+                  style={[styles.statTile, { backgroundColor: colors.background, borderColor: colors.border }]}
+                >
+                  <Text style={[styles.statTileLabel, { color: colors.textSecondary }]}>{label}</Text>
+                  <Text style={[styles.statTileValue, { color: colors.text }]}>{value}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      )}
+      {/* Ryhmät sivu*/}
+      {activeTab === 'Ryhmät' && (
+        <View style={styles.section}>
+          <Text style={[{ color: colors.text }, styles.sectionTitle]}>Ryhmät</Text>
+          <Text style={{ color: colors.text }}>Ryhmät-osio on vielä kehitteillä.</Text>
+        </View>
+      )}
+
+    </View>
+
+
   );
 }
 
@@ -330,8 +442,8 @@ const styles = StyleSheet.create({
   headerImage: {
     width: '100%',
     marginTop: -7,
-     height: 410,
-     top: 0,
+    height: 410,
+    top: 0,
     position: 'absolute',
     resizeMode: 'cover',
   },
@@ -407,7 +519,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
-   tabBar: {
+  tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 10,
@@ -423,7 +535,7 @@ const styles = StyleSheet.create({
   activeTabText: {
     fontWeight: 'bold',
   },
-    activeIndicator: {
+  activeIndicator: {
     position: 'absolute',
     bottom: -10,
     width: 30,
@@ -432,7 +544,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
   },
-   section: {
+  section: {
     marginTop: SPACING.xl,
     paddingHorizontal: SPACING.lg,
   },
@@ -444,18 +556,18 @@ const styles = StyleSheet.create({
   activityBackground: {
     paddingBottom: SPACING.lg,
   },
-  
+
   activityCard: {
-  borderRadius: 20,
-  padding: 20,
-  flexDirection: 'row', // Pitää tekstin vasemmalla ja raketin oikealla
-  alignItems: 'center', // Keskittää raketin pystysuunnassa suhteessa tekstiin
-  elevation: 4,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.1,
-  shadowRadius: 10,
-},
+    borderRadius: 20,
+    padding: 20,
+    flexDirection: 'row', // Pitää tekstin vasemmalla ja raketin oikealla
+    alignItems: 'center', // Keskittää raketin pystysuunnassa suhteessa tekstiin
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+  },
   activityContent: {
     flex: 1,
   },
@@ -490,10 +602,10 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10, 
-    overflow: 'visible', 
+    paddingVertical: 10,
+    overflow: 'visible',
   },
-  
+
   scrollView: {
     flex: 1,
   },

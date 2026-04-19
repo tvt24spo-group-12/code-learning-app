@@ -13,6 +13,7 @@ export type UserProfile = {
   username: string | null;
   hasUsername: boolean;
   createdAt?: any;
+  profilePicture?: string; 
 };
 
 export type PaymentMethod = {
@@ -43,6 +44,7 @@ export const fetchUserProfile = async (
         username: data.username || null,
         hasUsername: !!data.username,
         createdAt: data.createdAt || null,
+         profilePicture: data.profilePicture || null,
       };
     }
 
@@ -385,4 +387,12 @@ export const updateUsername = async (
   } catch (error: any) {
     throw new Error(error.message || "Failed to update username");
   }
+};
+
+//profiilikuva päivitys
+export const updateProfilePictureURL = async (uid: string, url: string) => {
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, {
+    profilePicture: url
+  });
 };

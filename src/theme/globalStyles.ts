@@ -80,12 +80,33 @@ export const createGlobalStyles = (mode: ThemeMode) => {
         // Card/Section
         card: {
             backgroundColor: colors.surface,
-            borderRadius: 12,
+            borderRadius: 20,
             padding: 16,
             marginBottom: 16,
             borderWidth: 1,
             borderColor: colors.border,
+            elevation: 4,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 10,
         },
+        
+         premiumCard: {
+        backgroundColor: colors.background,
+        borderRadius: 20,
+        padding: 20,
+        marginHorizontal: 16,
+        marginBottom: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
 
         // Separator
         divider: {

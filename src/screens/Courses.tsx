@@ -119,7 +119,7 @@ const CoursePage = ({ navigation, route }: any) => {
     <View>
       {!selectedCourseId && (
         <TouchableOpacity
-          style={[globalStyles.card, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, justifyContent: 'space-between' }]}
+          style={[globalStyles.premiumCard, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, justifyContent: 'space-between' }]}
           onPress={() => {
             navigation.setParams({ courseId: item.courseId })
           }}
