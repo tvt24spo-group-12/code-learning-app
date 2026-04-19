@@ -141,7 +141,7 @@ require(['vs/editor/editor.main'], function() {
   // optional polish
   scrollBeyondLastLine: false
   });
-
+  
   document.getElementById('submitButton').addEventListener('click', () => {
     const code = window.editor.getValue();
     window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -153,6 +153,7 @@ require(['vs/editor/editor.main'], function() {
   // Focus on editor when it's loaded
   window.editor.focus();
 });
+
 </script>
 </body>
 </html>
