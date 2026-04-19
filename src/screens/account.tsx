@@ -65,7 +65,7 @@ const buildTiles = (s: UserStats | null) => [
 
 /**
 Account page
-sivulla näytetään käyttäjän tiedot, aktiivisuus,groupit ja suositellut kurssit .
+sivulla näytetään käyttäjän tiedot, aktiivisuus,groupit ja suositellut kurssit.
  */
 export default function AccountPage() {
   const navigation = useNavigation<any>();
