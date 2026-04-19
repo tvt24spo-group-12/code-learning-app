@@ -11,6 +11,6 @@ export interface Exercise {
   question: string;
   options?: string[];
   correctAnswer: string;
-  initialCode?: string;
+  starterCode?: string;
 
 }
