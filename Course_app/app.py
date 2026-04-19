@@ -1,8 +1,9 @@
 from flask import Flask, render_template_string, request, jsonify
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, storage
 import json
 import os
+import datetime
 
 app = Flask(__name__)
 
@@ -12,8 +13,11 @@ SDK_PATH = 'serviceAccountKey.json'
 
 if os.path.exists(SDK_PATH):
     cred = credentials.Certificate(SDK_PATH)
-    firebase_admin.initialize_app(cred)
+    firebase_admin.initialize_app(cred, {
+        'storageBucket': 'code-learning-app-a1582.firebasestorage.app'
+    })
     db = firestore.client()
+    bucket = storage.bucket()
 else:
     db = None
 
@@ -53,6 +57,11 @@ HTML_TEMPLATE = """
 
                 <p>Manuaalinen valinta:</p>
                 <input type="text" id="newDocId" placeholder="Esim. Python nönnönönnö">
+
+                <hr>
+                <label>Kurssin logo (valinnainen):</label>
+                <input type="file" id="logoFile" accept="image/*">
+
                 <p><b>Tehtävän tiedot (vapaaehtoinen):</b></p>
                 <label>Alikokoelma (esim. tasks):</label>
                 <input type="text" id="subCol" placeholder="tasks">
@@ -78,22 +87,26 @@ HTML_TEMPLATE = """
             const docId = document.getElementById('newDocId').value || document.getElementById('docId').value;
             const subCol = document.getElementById('subCol').value.trim();
             const taskId = document.getElementById('taskId').value.trim();
-            const data = document.getElementById('jsonData').value;
+            const data = document.getElementById('jsonData').value.trim() || "{}";
+            const fileInput = document.getElementById('logoFile');
 
             if (!docId) {
                 status.innerHTML = '<p class="error">Anna tai valitse Kurssi ID!</p>';
                 return;
             }
 
+            const formData = new FormData();
+            formData.append('docId', docId);
+            formData.append('subCol', subCol);
+            formData.append('taskId', taskId);
+            formData.append('data', data);
+            if (fileInput.files[0]) {
+                formData.append('logo', fileInput.files[0]);
+            }
+
             const res = await fetch('/upload', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    docId: docId, 
-                    subCol: subCol, 
-                    taskId: taskId, 
-                    data: data 
-                })
+                body: formData
             });
             const result = await res.json();
             if (result.success) {
@@ -117,14 +130,22 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
-        req_data = request.json
-        doc_id = req_data.get('docId')
-        sub_col = req_data.get('subCol')
-        task_id = req_data.get('taskId')
-        raw_json = req_data.get('data')
+        doc_id = request.form.get('docId')
+        sub_col = request.form.get('subCol')
+        task_id = request.form.get('taskId')
+        raw_json = request.form.get('data') or "{}"
         
         data = json.loads(raw_json)
         doc_ref = db.collection('Courses').document(doc_id)
+
+        # Käsitellään logon lataus Storageen
+        if 'logo' in request.files:
+            file = request.files['logo']
+            if file.filename != '':
+                blob = bucket.blob(f"course_logos/{doc_id}")
+                blob.upload_from_string(file.read(), content_type=file.content_type)
+                blob.make_public()
+                doc_ref.set({"logoUrl": blob.public_url}, merge=True)
 
         #firebase valittaa että pitää olla jotakin documentin sisällä muutakin kuin toinen collectioni niin laitoin tuo courseid sinne sisälle.
         doc_ref.set({"courseId": doc_id}, merge=True)
