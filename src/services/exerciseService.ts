@@ -31,7 +31,7 @@ export const checkifDone=async(userid:string)=>{
   }
 }
 
-export const setDone= async(courseId:string, exerciseId:string, attempts:number, userId:string)=>{
+export const setDone= async(courseId:string, exerciseId:string, attempts:number, userId:string, points:number)=>{
  
  // const task = doc(db,"Courses",courseId,"Tasks",exerciseId)
   const user = doc(db,"users",userId)
@@ -47,7 +47,9 @@ completedTasks: arrayUnion({
       courseName: courseId,
        taskName:exerciseId,
         attempts:attempts,
-         date: Timestamp.now(),}),
+         date: Timestamp.now(),
+        points:points
+        }),
   })
 }catch(error){
   console.error(error)
@@ -85,3 +87,34 @@ export const getTask = async (courseId: string, exerciseId: string): Promise<Exe
   };
 };
 
+
+export const countPoints = async(difficulty:string, attempts:number)=>{
+  const Pointmultipier:number = attempts*0.20 //0.20 on kerroin joka vähentää pisteiden määrää
+  switch(difficulty){
+    case 'easy':{
+    if(attempts === 1){
+      return 1
+    }
+      return (1-Pointmultipier).toFixed(2)
+      
+    }
+    case 'medium':{
+      if(attempts === 1){
+        return 2
+      }
+      return (2-Pointmultipier).toFixed(2)
+    }
+    case 'hard':{
+      if(attempts === 1){
+        return 3
+      }
+      return (3-Pointmultipier).toFixed(2)
+    }
+    default:
+      {
+        break;
+      }
+  }
+
+
+}
