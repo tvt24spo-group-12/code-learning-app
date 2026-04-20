@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 //import { getExerciseById } from '../services/exerciseService';
 import { Exercise } from '../types/exercise';
 import { Check, X } from 'lucide-react-native';
-import { fetchTasks, getCourses,getTask,setDone } from '../services/exerciseService';
+import { fetchTasks, getCourses,getTask,setDone, countPoints } from '../services/exerciseService';
 import { fetchUserProfile } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 
@@ -36,7 +36,7 @@ const ExerciseScreen = ({ route }: any) => {
     fetchExercise();
   }, [exerciseId]);
 
-  const checkAnswer = (option: string) => {
+  const checkAnswer = async (option: string) => {
   
      
     setSelectedOption(option);
@@ -47,7 +47,10 @@ const ExerciseScreen = ({ route }: any) => {
     if (correct) {
       
       Alert.alert('Good!', 'Excellent work!', [{ text: 'Excellent' }]);
-      setDone(courseId, exerciseId, attempts+1, userid)
+   
+      const points = await countPoints(exercise.difficulty,attempts+1)
+    
+      setDone(courseId, exerciseId, attempts+1, userid, Number(points))
     } else {
          setAttempts(prev=>prev + 1)
       Alert.alert('Ouch!', 'Try again!', [{ text: 'OK' }]);
@@ -131,3 +134,7 @@ const styles = StyleSheet.create({
 });
 
 export default ExerciseScreen;
+
+function async(difficulty: string, attempts: number) {
+  throw new Error('Function not implemented.');
+}
