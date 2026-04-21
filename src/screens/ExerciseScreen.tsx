@@ -49,7 +49,7 @@ const ExerciseScreen = ({ route }: any) => {
       Alert.alert('Good!', 'Excellent work!', [{ text: 'Excellent' }]);
    
       const points = await countPoints(exercise.difficulty,attempts+1)
-    console.log(points)
+    
       setDone(courseId, exerciseId, attempts+1, userid, Number(points))
     } else {
          setAttempts(prev=>prev + 1)
