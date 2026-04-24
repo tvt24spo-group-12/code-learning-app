@@ -96,7 +96,7 @@ export const countPoints = async(difficulty:string, attempts:number)=>{
       return 1
     }
        const points = (1-Pointmultipier).toFixed(2)
-       if(points <= 0.00){
+       if(Number(points) <= 0.00){
         return 0
        }
       return points
@@ -106,7 +106,7 @@ export const countPoints = async(difficulty:string, attempts:number)=>{
         return 2
       }
       const points = (2-Pointmultipier).toFixed(2)
-         if(points <= 0.00){
+         if(Number(points) <= 0.00){
         return 0
        }
       return points
@@ -116,7 +116,7 @@ export const countPoints = async(difficulty:string, attempts:number)=>{
         return 3
       }
       const points = (3-Pointmultipier).toFixed(2)
-         if(points <= 0.00){
+         if(Number(points) <= 0.00){
         return 0
        }
       return points
