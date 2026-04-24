@@ -12,6 +12,7 @@ const CodingScreen = ({ route }: any) => {
     problemQuestion={exercise.title}
     problemDescription={exercise.description}
     courseId={exercise.courseId}
+    difficulty={exercise.difficulty}
     />
   );
 };
