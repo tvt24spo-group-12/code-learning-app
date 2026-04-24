@@ -5,12 +5,15 @@ export const lightTheme = {
     danger: '#ef4444',
     success: '#10b981',
     background: '#ffffff',
-    surface: '#f3f4f6',
+    surface: '#f3f4f6da',
     text: '#1f2937',
     textSecondary: '#6b7280',
     border: '#e5e7eb',
     inputBackground: '#f9fafb',
     inputBorder: '#d1d5db',
+    bannerText: '#ffffff',
+    bannerBackground: '#1f2937',
+
 };
 
 export const darkTheme = {
@@ -24,6 +27,8 @@ export const darkTheme = {
     border: '#374151',
     inputBackground: '#111827',
     inputBorder: '#4b5563',
+    bannerText: '#ffffff',
+    bannerBackground: '#111827',
 };
 
 export const getTheme = (mode: ThemeMode) => mode === "light" ? lightTheme : darkTheme;

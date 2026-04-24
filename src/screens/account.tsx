@@ -39,19 +39,14 @@ import {
   Group,
   Trophy,
 } from 'lucide-react-native';
-const SPACING = { xl: 20, lg: 16, md: 12 };
-
 type ChartMode = 'day' | 'month' | 'year';
-
 const CHART_MODES: { key: ChartMode; label: string }[] = [
   { key: 'day', label: 'Päivittäinen' },
   { key: 'month', label: 'Kuukausittainen' },
   { key: 'year', label: 'Vuosittainen' },
 ];
-
 const trendLabel = (slope: number) =>
   slope < -0.01 ? '↓ Paranee' : slope > 0.01 ? '↑ Nousee' : '→ Vakaa';
-
 const buildTiles = (s: UserStats | null) => [
   { label: 'Suoritetut tehtävät', value: String(s?.totalTasks ?? 0) },
   { label: 'Aktiiviset päivät', value: String(s?.activeDays ?? 0) },
@@ -77,7 +72,6 @@ export default function AccountPage() {
   const [chartMode, setChartMode] = useState<ChartMode>('month');
   // Aktiivinen välilehti (Yleiskatsaus oletuksena)
   const [activeTab, setActiveTab] = useState('Yleiskatsaus');
-
   // Välilehtien konfiguraatio
   const tabs = [
     { name: 'Yleiskatsaus', icon: Code },
@@ -87,14 +81,12 @@ export default function AccountPage() {
   const { theme } = useTheme();
   const globalStyles = createGlobalStyles(theme);
   const colors = getTheme(theme);
-
   const [formData, setFormData] = useState({
     username: '',
     joinDate: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const { userProfile } = useAuth();
-
 
   const latestCourse = latestActivityData?.courseName || "Ei aktiviteettia";
   const progress = latestActivityData ? Math.round((latestActivityData.completedExercises / latestActivityData.totalExercises) * 100) : 0;
@@ -249,8 +241,13 @@ export default function AccountPage() {
         </View>
       </View>
 
-      {/* "Välilehtivalikko"*/}
-      <View style={styles.tabBar}>
+      {/* Välilehtivalikko */}
+      <View style={[styles.tabBar,
+      {
+        backgroundColor: colors.background
+
+      }]}>
+
         {tabs.map((tab) => (
           <TouchableOpacity
             key={tab.name}
@@ -276,12 +273,15 @@ export default function AccountPage() {
 
       {/* Yleiskatsaus sivu */}
       {activeTab === 'Yleiskatsaus' && (
-        <View style={styles.section}>
-          <Text style={[{ color: colors.text }, styles.sectionTitle]}>Viimeisin aktiviteetti</Text>
+        <View style={[styles.section,
+        {
+          backgroundColor: colors.background
+        }]}>
+          <Text style={[{ color: colors.text, marginTop: 0, paddingTop: 10 }, styles.sectionTitle]}>Viimeisin aktiviteetti</Text>
 
           <TouchableOpacity
             style={[
-              { backgroundColor: colors.background },
+              { backgroundColor: colors.surface, borderColor: colors.border },
               styles.activityCard
             ]}
             onPress={() => {
@@ -323,7 +323,12 @@ export default function AccountPage() {
 
           {/* VIIMEISIN SUORITETTU KURSSI */}
           {latestCompletedCourse ? (
-            <View style={[styles.activityCard, { backgroundColor: colors.background, marginTop: 15 }]}>
+            <View style={[styles.activityCard, {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              marginTop: 15, marginBottom: 150
+            }]}>
+
               <View style={styles.activityContent}>
                 <Text style={[{ color: colors.textSecondary }, styles.courseHeader]}>
                   Viimeisin suoritettu kurssi:
@@ -364,7 +369,7 @@ export default function AccountPage() {
       {activeTab === 'Tilastot' && (
 
         <View style={styles.section}>
-          <Text style={[{ color: colors.text }, styles.sectionTitle]}>Tilastot</Text>
+          <Text style={[{ color: colors.text, marginTop: 0, paddingTop: 10 }, styles.sectionTitle]}>Tilastot</Text>
           <Text style={{ color: colors.text }}>it takes you on average {avgAttempts} attempts to complete a task</Text>
           <Text style={{ color: colors.text }}>your success rate is {Math.round(successrate)}%</Text>
 
@@ -487,7 +492,7 @@ const styles = StyleSheet.create({
   avatarBorder: {
     width: 150,
     height: 150,
-    borderRadius: 45,
+    borderRadius: 40,
     borderWidth: 5,
     borderColor: 'white',
     padding: 0,
@@ -495,11 +500,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
   },
   avatar: {
     width: 150,
@@ -519,7 +519,11 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   tabItem: {
     alignItems: 'center',
@@ -542,16 +546,16 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 3,
   },
   section: {
-    marginTop: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: SPACING.md,
+    marginBottom: 12,
   },
   activityBackground: {
-    paddingBottom: SPACING.lg,
+    paddingBottom: 16,
   },
 
   activityCard: {
@@ -559,10 +563,10 @@ const styles = StyleSheet.create({
     padding: 20,
     flexDirection: 'row', // Pitää tekstin vasemmalla ja raketin oikealla
     alignItems: 'center', // Keskittää raketin pystysuunnassa suhteessa tekstiin
-    elevation: 4,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 10,
   },
   activityContent: {
@@ -606,7 +610,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statsScroll: {
-    marginTop: SPACING.md,
+    marginTop: 12,
     maxHeight: Dimensions.get('window').height - 560,
   },
   statsScrollContent: {
@@ -627,8 +631,8 @@ const styles = StyleSheet.create({
   subSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.md,
+    marginTop: 16,
+    marginBottom: 12,
   },
   statsGrid: {
     flexDirection: 'row',

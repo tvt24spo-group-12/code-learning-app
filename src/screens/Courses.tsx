@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, ChevronRight, ListX, ListCheck } from 'lucide-react-native';
+import { ArrowLeft, Check, ChevronRight, ListX, ListCheck, GraduationCap } from 'lucide-react-native';
 import React, { useEffect, useLayoutEffect, useState, useCallback } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { checkifDone, fetchTasks, getCourses } from '../services/exerciseService
 import { createGlobalStyles } from "../theme/globalStyles";
 import { getTheme } from "../theme/theme";
 import { Exercise } from '../types/exercise';
+import Banner from "../components/banner";
 
 interface CompletedTask {
   courseName: string;
@@ -18,18 +19,20 @@ interface CompletedTask {
 }
 
 const CoursePage = ({ navigation, route }: any) => {
-  const [exercises, setExercises] = useState<Exercise[]>([]); // Käytetään useState johdonmukaisesti
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
-  const [title, setTitle] =useState<string[]>([])
+  const [title, setTitle] = useState<string[]>([])
   const [userid, setUserId] = useState<string>("")
-  const [completedTasks,setCompletedTasks] = useState<CompletedTask[]>([])
-  const {userProfile} = useAuth()
+  const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([])
+  const { userProfile } = useAuth()
   const selectedCourseId = route?.params?.courseId;
   const { theme } = useTheme();
   const globalStyles = createGlobalStyles(theme);
   const colors = getTheme(theme);
   const styles = createStyles(colors);
   const [coursesData, setCoursesData] = useState<any[]>([]);
+  const [showBanner, setShowBanner] = useState(true);
+
 
   const handleBack = () => {
     navigation.setParams({ courseId: undefined });
@@ -38,6 +41,7 @@ const CoursePage = ({ navigation, route }: any) => {
   useLayoutEffect(() => {
     if (selectedCourseId) {
       navigation.setOptions({
+        headerShown: true,
         headerLeft: () => (
           <TouchableOpacity onPress={handleBack} style={{ marginLeft: 8 }}>
             <ArrowLeft size={24} color={colors.text} />
@@ -46,6 +50,7 @@ const CoursePage = ({ navigation, route }: any) => {
       });
     } else {
       navigation.setOptions({
+        headerShown: false,
         headerLeft: undefined,
       });
     }
@@ -54,14 +59,14 @@ const CoursePage = ({ navigation, route }: any) => {
   useEffect(() => {
     setUserId(userProfile?.uid || "")
 
-    if(userid=== "" || userid.length=== 0){
+    if (userid === "" || userid.length === 0) {
       setLoading(true)
-    }else{
+    } else {
       setLoading(false)
       fetchExercises();
     }
 
-  }, [userid,userProfile,selectedCourseId]);
+  }, [userid, userProfile, selectedCourseId]);
 
   // Refresh completed tasks when screen comes into focus
   useFocusEffect(
@@ -85,21 +90,21 @@ const CoursePage = ({ navigation, route }: any) => {
     try {
       setLoading(true);
       const courses = await getCourses()
-      setCoursesData(courses); 
-      let courseIds = courses.map(course=>course.id)
+      setCoursesData(courses);
+      let courseIds = courses.map(course => course.id)
 
       if (selectedCourseId) {
         courseIds = courseIds.filter(id => id === selectedCourseId);
       }
 
-     setTitle(courseIds)
+      setTitle(courseIds)
       const data = await fetchTasks(courseIds)
-  
-    const completedtasks = await checkifDone(userid)
-     
+
+      const completedtasks = await checkifDone(userid)
+
       setCompletedTasks(completedtasks)
       setExercises(data || [])
-    
+
     } catch (error) {
       console.error('Error fetching:', error);
     } finally {
@@ -131,7 +136,7 @@ const CoursePage = ({ navigation, route }: any) => {
             }}
           >
             {logoUrl && (
-              <Image source={{ uri: logoUrl }} style={{ width: 40, height: 40, marginRight: 12, borderRadius: 8 }} />
+              <Image source={{ uri: logoUrl }} style={{ width: 40, height: 40, marginRight: 16, borderRadius: 8 }} />
             )}
             <View style={{ flex: 1 }}>
               <Text style={styles.courseTitle}>{item.courseId}</Text>
@@ -140,39 +145,39 @@ const CoursePage = ({ navigation, route }: any) => {
           </TouchableOpacity>
         )}
 
-      {selectedCourseId === item.courseId && (
-        <>
-          <Text style={styles.courseTitle}>{item.courseId}</Text>
+        {selectedCourseId === item.courseId && (
+          <>
+            <Text style={styles.courseTitle}>{item.courseId}</Text>
 
-          {item.exercises.map((exercise) => (
-            <TouchableOpacity
-              key={exercise.id}
-              style={[globalStyles.card, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16 }]}
-              onPress={() => {
-                if(exercise.type === "code-challenge"){
-                  navigation.navigate('CodingScreen', {exercise: exercise})
-                }
-                else{
-                  navigation.navigate('ExerciseDetail', { exerciseId: exercise.id, title: exercise.title, courseId: exercise.courseId })
-                }
-              }}
-            >
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle}>{exercise.title}</Text>
-                <Text style={styles.cardSubtitle}>{exercise.description}</Text>
-              </View>
-              {completedTasks?.some(task => task.taskName === exercise.id && task.courseName === exercise.courseId) ? (
-                <ListCheck size={24} color={colors.success} />
-              ) : (
-                <ListX size={24} color={colors.danger} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </>
-      )}
-    </View>
-  );
-};
+            {item.exercises.map((exercise) => (
+              <TouchableOpacity
+                key={exercise.id}
+                style={[globalStyles.card, { flexDirection: 'row', alignItems: 'center', marginHorizontal: 16 }]}
+                onPress={() => {
+                  if (exercise.type === "code-challenge") {
+                    navigation.navigate('CodingScreen', { exercise: exercise })
+                  }
+                  else {
+                    navigation.navigate('ExerciseDetail', { exerciseId: exercise.id, title: exercise.title, courseId: exercise.courseId })
+                  }
+                }}
+              >
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle}>{exercise.title}</Text>
+                  <Text style={styles.cardSubtitle}>{exercise.description}</Text>
+                </View>
+                {completedTasks?.some(task => task.taskName === exercise.id && task.courseName === exercise.courseId) ? (
+                  <ListCheck size={24} color={colors.success} />
+                ) : (
+                  <ListX size={24} color={colors.danger} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -181,43 +186,53 @@ const CoursePage = ({ navigation, route }: any) => {
       </View>
     );
   }
-  
   return (
-    <SafeAreaView style={globalStyles.screenContainer}>
+    <View style={globalStyles.screenContainer}>
+      {/* Näytetään banneri vain kurssisivun etusivulla, ei itse kurssin sisällä */}
+      {showBanner && !selectedCourseId &&
+
+        //käytetään banner komponenttiä ja laitetaan pakolliset propsit
+        <Banner
+          title="Kurssit"
+          bottomText="Valitse kurssi jota haluat suorittaa."
+        />}
+
       <FlatList
         data={groupedExercises}
         renderItem={renderItem}
-        keyExtractor={item => item.courseId} 
+        keyExtractor={item => item.courseId}
         contentContainerStyle={createStyles(colors).listContent}
       />
-    </SafeAreaView>
+    </View>
   );
-  
+
 };
 
 const createStyles = (colors: any) => StyleSheet.create({
-  listContent: { 
+  listContent: {
     padding: 20
   },
-  cardInfo: { 
-    flex: 1 
+  cardInfo: {
+    flex: 1
   },
-  cardTitle: { 
+  cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.text,
   },
   cardSubtitle: {
-    fontSize: 12, 
+    fontSize: 12,
     color: colors.textSecondary,
-    marginTop: 2 
+    marginTop: 2
   },
-  courseTitle: { 
+  courseTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 10,
     marginTop: 10,
   }
+
 });
+
 export default CoursePage;
