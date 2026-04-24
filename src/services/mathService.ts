@@ -18,7 +18,7 @@ export const countAverage = async(userId:string)=>{
         const totalAttemps = completedData.map((task:any)=> task.attempts)
         
         const averageCompletion = totalAttemps.reduce((sum,n)=>sum+n,0) / totalAttemps.length
-        return averageCompletion
+        return averageCompletion.toFixed(2)
  
     }catch(error){
         console.log("something went wrong: ", error)
@@ -36,7 +36,7 @@ export const successRate = async(userId:string) =>{
         const totalAttemps = completedData.map((task:any)=> task.attempts)
         
         const successRate = (totalAttemps.length/totalAttemps.reduce((sum,n)=>sum+n,0)) *100
-        return successRate
+        return successRate.toFixed(2)
  
     }catch(error){
         console.log("something went wrong: ", error)
