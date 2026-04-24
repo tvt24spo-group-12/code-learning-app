@@ -366,8 +366,8 @@ export default function AccountPage() {
 
         <View style={styles.section}>
           <Text style={[{ color: colors.text }, styles.sectionTitle]}>Tilastot</Text>
-          <Text style={{ color: colors.text }}>it takes you on average {avgAttempts} attempts to complete a task</Text>
-          <Text style={{ color: colors.text }}>your success rate is {Math.round(successrate)}%</Text>
+          <Text style={{ color: colors.text }}>Sinulla menee keskimäärin: {avgAttempts} yritystä tehtävän suorittamiseen</Text>
+          <Text style={{ color: colors.text }}>Onnistumisprosentti {Math.round(successrate)}%</Text>
 
           <ScrollView
             style={styles.statsScroll}
