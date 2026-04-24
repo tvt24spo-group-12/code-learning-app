@@ -288,7 +288,6 @@ export default function AccountPage() {
               if (latestActivityData?.courseId) {
                 navigation.navigate("ExerciseScreen", {
                   courseId: latestActivityData.courseId,
-                  exerciseId: latestActivityData.courseId
                 });
               }
             }}
@@ -322,7 +321,7 @@ export default function AccountPage() {
             </View>
           </TouchableOpacity>
 
-         {/* VIIMEISIN SUORITETTU KURSSI */}
+          {/* VIIMEISIN SUORITETTU KURSSI */}
           {latestCompletedCourse ? (
             <View style={[styles.activityCard, { backgroundColor: colors.background, marginTop: 15 }]}>
               <View style={styles.activityContent}>
@@ -427,8 +426,6 @@ export default function AccountPage() {
       )}
 
     </View>
-
-
   );
 }
 
@@ -605,7 +602,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     overflow: 'visible',
   },
-
   scrollView: {
     flex: 1,
   },
