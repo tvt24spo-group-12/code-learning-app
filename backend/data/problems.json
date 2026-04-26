@@ -112,7 +112,7 @@
     },
     "outputPrinter": {
       "cpp": "std::cout << (result ? \"true\" : \"false\") << std::endl;",
-      "python": "print(result)"
+      "python": "print(str(result).lower())"
     },
     "testCases": [
       { "input": "7", "expectedOutput": "true" },
@@ -282,7 +282,7 @@
     },
     "outputPrinter": {
       "cpp": "std::cout << (result ? \"true\" : \"false\") << std::endl;",
-      "python": "print(result)"
+      "python": "print(str(result).lower())"
     },
     "testCases": [
       { "input": "4", "expectedOutput": "true" },
@@ -368,7 +368,7 @@
     },
     "outputPrinter": {
       "cpp": "std::cout << (result ? \"true\" : \"false\") << std::endl;",
-      "python": "print(result)"
+      "python": "print(str(result).lower())"
     },
     "testCases": [
       { "input": "racecar", "expectedOutput": "true" },
