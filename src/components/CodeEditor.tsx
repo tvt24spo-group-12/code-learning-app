@@ -4,7 +4,7 @@ import WebView, { WebViewMessageEvent } from "react-native-webview";
 import { judgeCode, runCode } from "../services/codeService";
 import ResultsModal from "./ResultsModal";
 import { JudgingResult } from "../types/codingProblem";
-import { setDone } from "../services/exerciseService";
+import { setDone, countPoints } from "../services/exerciseService";
 import { useAuth } from "../context/AuthContext";
 
 interface CodeEditorProps {
@@ -14,7 +14,7 @@ interface CodeEditorProps {
   problemQuestion?: string;
   problemDescription?: string;
   courseId: string;
-
+  difficulty: string;
 }
 
 const editorSettings = {
@@ -31,38 +31,44 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   problemQuestion,
   problemDescription,
   courseId,
-
+  difficulty
 }) => {
+  const [results, setResults] = React.useState<null | JudgingResult[]>(null);
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const { userProfile } = useAuth();
+  const userId = userProfile?.uid || "null";
+  const [attempts, setAttempts] = React.useState<number>(0);
 
-    const [results, setResults] = React.useState<null | JudgingResult[]>(null);
-    const [modalVisible, setModalVisible] = React.useState(false);
-    const {userProfile} = useAuth()
-    const userId = userProfile?.uid || "null"
-    const [attempts, setAttempts] = React.useState<number>(0);
-    
+
   const webViewRef = useRef<WebView>(null);
 
   const onMessage = async (event: WebViewMessageEvent) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      if (data.command === "submitCode") {
-        console.log("Submitted Code:", data.data);
-        const result = await judgeCode(data.data, language, problemId);
-        const message = result.results
-        setResults(message);
-        setModalVisible(true);
-        if(result.results.length === result.passed){
-            setAttempts(attempts + 1);
-            setDone(courseId, problemId, attempts, userId)
-        }
-        else{
-            setAttempts(attempts + 1);
-        }
+  try {
+    const data = JSON.parse(event.nativeEvent.data);
+
+    if (data.command === "submitCode") {
+      const result = await judgeCode(data.data, language, problemId);
+
+      setResults(result.results);
+      setModalVisible(true);
+
+      const allPassed = result.results.length === result.passed;
+
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      const points = await countPoints(difficulty, newAttempts);
+
+      if (allPassed) {
+        await setDone(courseId, problemId, newAttempts, userId, Number(points));
       }
-    } catch (err) {
-      console.error("Failed to parse message from WebView:", err);
     }
-  };
+  } catch (err) {
+    console.error("Failed to parse message from WebView:", err);
+  }
+};
+
+
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -193,11 +199,11 @@ require(['vs/editor/editor.main'], function() {
         }}
         style={styles.webview}
       />
-        <ResultsModal
-            visible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            results={results}
-            />
+      <ResultsModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        results={results}
+      />
     </View>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useLayoutEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { createGlobalStyles } from '../theme/globalStyles';
 import { useTheme } from '../context/ThemeContext';
 import { getTheme } from '../theme/theme';
 import { useAuth } from '../context/AuthContext';
+import Banner from "../components/banner";
 
 type FormData = {
   username: string;
@@ -29,6 +30,14 @@ export default function SettingsPage({ navigation }: any) {
   const colors = getTheme(theme);
   const globalStyles = createGlobalStyles(theme);
   const { logout, deleteAccount, userProfile, isLoading: authLoading, changeUserPassword, updateProfileData } = useAuth();
+  const [showBanner, setShowBanner] = useState(true);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
 
   const [formData, setFormData] = useState<FormData>({
     username: '',
@@ -153,14 +162,20 @@ export default function SettingsPage({ navigation }: any) {
       </View>
     )
   }
-  
-    return(
-      <ScrollView style={[globalStyles.screenContainer]} showsVerticalScrollIndicator={false}>
-        <View style={globalStyles.container}>
-          {/* Header */}
-          {/* <Text style={globalStyles.heading}>Settings</Text> */}
 
-          {/* Theme Toggle */}
+  return (
+    <ScrollView style={[globalStyles.screenContainer]} showsVerticalScrollIndicator={false}>
+      <View style={globalStyles.screenContainer}>
+        {showBanner &&
+          <Banner
+            title="Asetukset"
+            bottomText="Muokkaa asetuksiasi täällä."
+            isSettings={true}
+          />}
+        {/* Header */}
+        {/* <Text style={globalStyles.heading}>Settings</Text> */}
+        {/* Theme Toggle */}
+        <View style={globalStyles.container}>
           <View style={[globalStyles.card, styles.themeCard]}>
             <View style={styles.themeRow}>
               <View style={styles.themeLabel}>
@@ -180,33 +195,33 @@ export default function SettingsPage({ navigation }: any) {
 
           {/* Account Section */}
           <Text style={globalStyles.subheading}>Käyttäjä Tiedot</Text>
-            <View style={globalStyles.card}>
-              <View style={styles.inputGroup}>
-                <View style={styles.inputWithIcon}>
-                  <User size={16} color={colors.textSecondary} style={styles.inputIcon} />
-                  <TextInput 
-                    style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
-                    placeholder="Username"
-                    placeholderTextColor={colors.textSecondary}
-                    value={formData.username}
-                    onChangeText={(text) => setFormData(prev => ({ ...prev, username: text }))}
-                    editable={!isLoading}
-                  />
-                </View>
+          <View style={globalStyles.card}>
+            <View style={styles.inputGroup}>
+              <View style={styles.inputWithIcon}>
+                <User size={16} color={colors.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={[globalStyles.input, { flex: 1, marginBottom: 0 }]}
+                  placeholder="Username"
+                  placeholderTextColor={colors.textSecondary}
+                  value={formData.username}
+                  onChangeText={(text) => setFormData(prev => ({ ...prev, username: text }))}
+                  editable={!isLoading}
+                />
               </View>
-
-              <TouchableOpacity
-                style={[globalStyles.button, globalStyles.buttonPrimary, { marginTop: 12 }]}
-                onPress={handleUpdateProfile}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={{ color: '#fff', fontWeight: '600' }}>Päivitä Profiili</Text>
-                )}
-              </TouchableOpacity>
             </View>
+
+            <TouchableOpacity
+              style={[globalStyles.button, globalStyles.buttonPrimary, { marginTop: 12 }]}
+              onPress={handleUpdateProfile}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={{ color: '#fff', fontWeight: '600' }}>Päivitä Profiili</Text>
+              )}
+            </TouchableOpacity>
+          </View>
 
           {/* Password Section */}
           <Text style={globalStyles.subheading}>Turvallisuus</Text>
@@ -369,9 +384,10 @@ export default function SettingsPage({ navigation }: any) {
           {/* Footer spacing */}
           <View style={{ height: 40 }} />
         </View>
-      </ScrollView>
-    )
-  }
+      </View>
+    </ScrollView >
+  )
+}
 
 const styles = StyleSheet.create({
   themeCard: {

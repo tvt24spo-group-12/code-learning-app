@@ -91,22 +91,23 @@ export const createGlobalStyles = (mode: ThemeMode) => {
             shadowOpacity: 0.1,
             shadowRadius: 10,
         },
-        
-         premiumCard: {
-        backgroundColor: colors.background,
-        borderRadius: 20,
-        padding: 20,
-        marginHorizontal: 16,
-        marginBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
+
+        bannerIcon: {
+            marginLeft: 10,
+            paddingRight: 10,
+        },
+        bannerTitle: {
+            color: colors.bannerText,
+            fontSize: 24,
+            fontWeight: 'bold',
+            textAlign: 'left',
+        },
+        bannerBottomText: {
+            color: colors.bannerText,
+            fontSize: 14,
+            marginTop: 5,
+            textAlign: 'left',
+        },
 
         // Separator
         divider: {
@@ -128,9 +129,9 @@ export const createGlobalStyles = (mode: ThemeMode) => {
 
         // Loading wheel (a throbber)
         loading: {
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
         },
     });
 };
